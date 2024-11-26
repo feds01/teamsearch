@@ -12,4 +12,7 @@ teamsearch_utils = { workspace = true }
 anyhow = { workspace = true }
 derive_more = { workspace = true }
 globset = { workspace = true }
+ignore = { workspace = true }
+index_vec = { workspace = true }
+itertools = { workspace = true }
 log = { workspace = true }
