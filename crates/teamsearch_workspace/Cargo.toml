@@ -11,4 +11,5 @@ teamsearch_utils = { workspace = true }
 
 anyhow = { workspace = true }
 derive_more = { workspace = true }
+globset = { workspace = true }
 log = { workspace = true }
