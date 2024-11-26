@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Centered group -->
+  <g transform="translate(0, 20)">
+    <!-- Main magnifying glass -->
+    <circle cx="120" cy="80" r="45" fill="none" stroke="url(#gradient)" stroke-width="12"/>
+    <line x1="150" y1="110" x2="190" y2="150" stroke="url(#gradient)" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Code elements in the glass -->
+    <text x="95" y="85" font-family="monospace" font-size="14" fill="#4A90E2">{team}</text>
+    
+    <!-- TeamSearch text -->
+    <text x="210" y="95" font-family="Arial, sans-serif" font-weight="bold" font-size="40" fill="#2C3E50">
+      Team<tspan fill="#4A90E2">Search</tspan>
+    </text>
+    
+    <!-- Small team icons -->
+    <circle cx="85" cy="60" r="8" fill="#4A90E2" opacity="0.8"/>
+    <circle cx="140" cy="65" r="8" fill="#4A90E2" opacity="0.8"/>
+    <circle cx="110" cy="45" r="8" fill="#4A90E2" opacity="0.8"/>
+  </g>
+</svg>
