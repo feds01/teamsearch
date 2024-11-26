@@ -1,4 +1,19 @@
+[workspace]
+members = [
+  "crates/teamsearch*",
+]
+
+resolver = "2"
+
+[workspace.package]
+authors = ["Alexander Fedotov <alexander.fedotov.uk@gmail.com>"]
+edition = "2024"
+
+
+[workspace.dependencies]
+teamsearch_utils = { path = "crates/teamsearch_utils" }
 anyhow = { version = "1.0.80" }
 argfile = { version = "0.2.0" }
 clap = { version = "4.5.3", features = ["derive"] }
 colored = { version = "2.1.0" }
+log = { version = "0.4", features = ["kv_unstable", "kv_serde"] }
