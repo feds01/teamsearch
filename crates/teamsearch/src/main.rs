@@ -1,4 +1,4 @@
-//! Entry point of Bracketlint.
+//! Entry point of teamsearch.
 
 use std::process::ExitCode;
 

@@ -1,14 +1,14 @@
-//! Hash Compiler crash handler
+//! Teamsearch crash handler
 use std::{io::Write, panic::PanicHookInfo, process::exit, sync::atomic, thread};
 
 const BUG_REPORT_MSG: &str = "This is an bug, please file a bug report at";
 const BUG_REPORT_URI: &str =
     "https://github.com/feds01/teamsearch/issues?labels=bug&template=bug_report";
 
-/// The Hash compiler crash handler. This function should be used to register a
-/// `panic` handle for the compiler. It will ensure that only one thread can
-/// panic at a time, it will print the panic message, a backtrace, and a link to
-/// the bug report page.
+/// The crash handler. This function should be used to register a `panic` handle
+/// for the program. It will ensure that only one thread can panic at a time, it
+/// will print the panic message, a backtrace, and a link to the bug report
+/// page.
 ///
 /// # Registering the handler
 /// ```ignore
@@ -26,7 +26,7 @@ pub fn crash_handler(info: &PanicHookInfo) {
         let stdout = std::io::stdout();
         let mut stdout = stdout.lock();
 
-        let _ = write!(&mut stdout, "Sorry :^(\nInternal Compiler Error");
+        let _ = write!(&mut stdout, "Sorry :^(\nInternal Error");
 
         if let Some(s) = info.payload().downcast_ref::<&str>() {
             let _ = writeln!(&mut stdout, ": {s}\n");
