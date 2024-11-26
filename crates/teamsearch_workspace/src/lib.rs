@@ -5,11 +5,13 @@
 
 pub mod codeowners;
 mod member;
+pub mod resolver;
 pub mod settings;
 
 use std::{collections::HashMap, path::PathBuf};
 
 use index_vec::IndexVec;
+pub use member::{Member, MemberId};
 use settings::Settings;
 use teamsearch_utils::stream::CompilerOutputStream;
 
