@@ -7,7 +7,10 @@ authors = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
+teamsearch_utils = { workspace = true }
 anyhow = { workspace = true }
 argfile = { workspace = true }
 clap = { workspace = true, features = ["derive", "env", "wrap_help"] }
 colored = { workspace = true }
+log = { workspace = true }
+once_cell = { workspace = true }
