@@ -1,0 +1,13 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "teamsearch"
+version = "0.1.0"
+authors = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+anyhow = { workspace = true }
+argfile = { workspace = true }
+clap = { workspace = true, features = ["derive", "env", "wrap_help"] }
+colored = { workspace = true }

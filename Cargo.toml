@@ -1,0 +1,4 @@
+anyhow = { version = "1.0.80" }
+argfile = { version = "0.2.0" }
+clap = { version = "4.5.3", features = ["derive"] }
+colored = { version = "2.1.0" }
