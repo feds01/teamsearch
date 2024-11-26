@@ -1,4 +1,4 @@
-//! Hash Compiler error and warning reporting module.
+//! Highlighting utilities.
 use std::ops::BitOr;
 
 /// Variants of highlighter colour that can be used.
