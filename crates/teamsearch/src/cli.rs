@@ -1,5 +1,6 @@
 //! Definitions of the command line interface for the `bl` binary.
 
+use std::path::PathBuf;
 
 use clap::{command, Parser};
 
@@ -19,6 +20,50 @@ pub struct Cli {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Command {
+    /// The check command checks the given files or directories for linting
+    /// errors.
+    Find(FindCommand),
+
     /// Command to print the version of the `bl` binary.
     Version,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct FindCommand {
+    /// List of files or directories to check.
+    #[clap(help = "List of files or directories to check [default: .]")]
+    pub files: Vec<PathBuf>,
+
+    /// Respect file exclusions via `.gitignore` and other standard ignore
+    /// files. Use `--no-respect-gitignore` to disable.
+    #[arg(
+        long,
+        overrides_with("no_respect_gitignore"),
+        help_heading = "File selection",
+        default_value = "true"
+    )]
+    pub respect_gitignore: bool,
+
+    #[clap(long, overrides_with("respect_gitignore"), hide = true)]
+    no_respect_gitignore: bool,
+
+    /// Specify the path of the file of the codeowners.
+    #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
+    pub codeowners: PathBuf,
+
+    /// Specify the team to check for.
+    #[clap(value_parser = parse_team_name, long, short, help = "Specify the team to check for [default: *]")]
+    pub team: String,
+
+    /// The pattern to look for within the codebase.
+    #[clap(short)]
+    pub pattern: String,
+}
+
+fn parse_team_name(raw_team: &str) -> Result<String, String> {
+    if raw_team.starts_with('@') {
+        Ok(raw_team.to_string())
+    } else {
+        Ok(format!("@{}", raw_team))
+    }
 }
