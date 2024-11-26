@@ -23,6 +23,12 @@ pub fn find(files: &[PathBuf], mut settings: Settings) -> Result<()> {
         // @@Todo: warn the user that there is no team.
         return Ok(());
     }
+
+    // Augment the settings with the patterns.
+    let patterns = codeowners.get_patterns_for_team(&settings.team).to_vec();
+    settings.file_resolver.include = settings.file_resolver.include.extend(patterns)?;
+    settings.file_resolver.user_exclude =
+        settings.file_resolver.user_exclude.extend(codeowners.get_ignored_patterns().to_vec())?;
     Ok(())
 }
 }
