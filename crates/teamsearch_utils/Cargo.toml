@@ -7,5 +7,7 @@ authors = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
+path-absolutize = { workspace = true}
 log = { workspace = true }
+once_cell = { workspace = true }
 clap = { workspace = true }
