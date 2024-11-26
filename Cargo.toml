@@ -18,7 +18,9 @@ argfile = { version = "0.2.0" }
 clap = { version = "4.5.3", features = ["derive"] }
 colored = { version = "2.1.0" }
 derive_more = "0.99.18"
+index_vec = "0.1.3"
 itertools = "0.13.0"
 log = { version = "0.4", features = ["kv_unstable", "kv_serde"] }
 once_cell = "1.19.0"
 path-absolutize = "3.1.1"
+thin-vec = "0.2.13"

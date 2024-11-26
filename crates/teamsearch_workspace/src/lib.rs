@@ -3,8 +3,14 @@
 //! and information about a particular lint run. The [WorkspaceBuilder] is
 //! responsible for creating a [Workspace] instance.
 
+pub mod codeowners;
+mod member;
 pub mod settings;
 
+use std::{collections::HashMap, path::PathBuf};
+
+use index_vec::IndexVec;
+use settings::Settings;
 use teamsearch_utils::stream::CompilerOutputStream;
 
 #[derive(Default)]
