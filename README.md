@@ -27,14 +27,30 @@ Example:
 Usage: teamsearch <COMMAND>
 
 Commands:
-  find     The check command checks the given files or directories for linting errors
-  version  Command to print the version of the `bl` binary
+  find     Find the code that you're looking for based on the CODEOWNERS file
+  version  Command to print the version of the `teamsearch` binary
   help     Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
   -V, --version  Print version
+```
 
 
+```bash
 $ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "some-c[o]+de-pattern"
+
+./some/cool/path/my-team-owns/in/submodule/_here.py
+119-                "context": "some-value",
+119:                "some-cooode-pattern": "some-value",
+120-            }
+--
+./another/cool/path/my-team-owns/in/_here.py
+27-                ctx["context"] = get_some_value()
+27:                ctx["cooode-pattern"] = "some-value"
+28-            }
+--
+88-                reset_context(ctx)
+89:                ctx["cooode-pattern"] = get_code_pattern()
+90-            }
 ```
