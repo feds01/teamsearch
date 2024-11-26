@@ -1,4 +1,4 @@
-//! Definitions of the command line interface for the `bl` binary.
+//! Definitions of the command line interface for the `teamsearch` binary.
 
 use std::path::PathBuf;
 
@@ -20,11 +20,10 @@ pub struct Cli {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Command {
-    /// The check command checks the given files or directories for linting
-    /// errors.
+    /// Find the code that you're looking for based on the CODEOWNERS file.
     Find(FindCommand),
 
-    /// Command to print the version of the `bl` binary.
+    /// Command to print the version of the `teamsearch` binary.
     Version,
 }
 
