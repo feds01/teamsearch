@@ -55,7 +55,7 @@ pub struct FindCommand {
 
     /// Specify the team to check for.
     #[clap(value_parser = parse_team_name, long, short, help = "Specify the team to check for [default: *]")]
-    pub team: String,
+    pub teams: Vec<String>,
 
     /// The pattern to look for within the codebase.
     #[clap(short)]
