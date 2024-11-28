@@ -16,7 +16,12 @@ use teamsearch_workspace::{
 };
 use termcolor::StandardStream;
 
-pub fn find(files: &[PathBuf], mut settings: Settings) -> Result<()> {
+pub fn find(
+    files: &[PathBuf],
+    mut settings: Settings,
+    team: String,
+    pattern: String,
+) -> Result<()> {
     let paths: Vec<PathBuf> = files.iter().map(fs::normalize_path).unique().collect();
 
     if paths.is_empty() {
@@ -27,13 +32,13 @@ pub fn find(files: &[PathBuf], mut settings: Settings) -> Result<()> {
     // extract the given patterns that are specified for the particular team.
     let codeowners = CodeOwners::parse_from_file(&settings.codeowners, &paths[0])?;
 
-    if !codeowners.has_team(&settings.team) {
+    if !codeowners.has_team(&team) {
         // @@Todo: warn the user that there is no team.
         return Ok(());
     }
 
     // Augment the settings with the patterns.
-    let patterns = codeowners.get_patterns_for_team(&settings.team).to_vec();
+    let patterns = codeowners.get_patterns_for_team(&team).to_vec();
     settings.file_resolver.include = settings.file_resolver.include.extend(patterns)?;
     settings.file_resolver.user_exclude =
         settings.file_resolver.user_exclude.extend(codeowners.get_ignored_patterns().to_vec())?;
@@ -54,7 +59,7 @@ pub fn find(files: &[PathBuf], mut settings: Settings) -> Result<()> {
 
     // @@Todo: integrate a cache system here, we should be able to avoid re-linting
     // already existent files and just skip them.
-    let matcher = RegexMatcher::new(settings.pattern.as_str())?;
+    let matcher = RegexMatcher::new(pattern.as_str())?;
 
     let mut printer = StandardBuilder::new()
         .heading(true)
