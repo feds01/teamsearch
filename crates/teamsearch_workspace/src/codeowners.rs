@@ -7,7 +7,7 @@ use anyhow::Result;
 use derive_more::Constructor;
 use teamsearch_utils::fs;
 
-use crate::settings::FilePattern;
+use crate::settings::{FilePattern, FilePatternSet};
 
 #[derive(Debug, Constructor, Default)]
 pub struct CodeOwners {
@@ -22,6 +22,35 @@ impl CodeOwners {
     /// Check whether the team exists or not.
     pub fn has_team(&self, team: &str) -> bool {
         self.owners.contains_key(team)
+    }
+
+    /// Get a [FilePatternSet] for a given team.
+    fn get_pattern_for_team(&self, team: &str) -> FilePatternSet {
+        FilePatternSet::try_from_iter(self.get_patterns_for_team(team).to_vec()).unwrap()
+    }
+
+    /// Lookup a file path to see which team owns it.
+    pub fn lookup(&self, path: &PathBuf) -> Option<&str> {
+        let path = fs::normalize_path(path);
+
+        // @@Hack: Check if we're missing a `/` at the end of the path.
+        let path_pat = if path.is_dir() && !path.to_string_lossy().ends_with('/') {
+            path.to_string_lossy().to_string() + "/"
+        } else {
+            path.to_string_lossy().to_string()
+        };
+
+        for owner in self.owners.keys() {
+            // @@Todo: we could potentially use a `OnceCell` here to cache the
+            // pattern set for each team.
+            let set = self.get_pattern_for_team(owner);
+
+            if set.is_match(&path_pat) {
+                return Some(owner);
+            }
+        }
+
+        None
     }
 
     /// Get all patterns for a specific team.

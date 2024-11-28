@@ -23,6 +23,9 @@ pub enum Command {
     /// Find the code that you're looking for based on the CODEOWNERS file.
     Find(FindCommand),
 
+    /// Lookup the team that owns a specific file or directory.
+    Lookup(LookupCommand),
+
     /// Command to print the version of the `teamsearch` binary.
     Version,
 }
@@ -65,4 +68,15 @@ fn parse_team_name(raw_team: &str) -> Result<String, String> {
     } else {
         Ok(format!("@{}", raw_team))
     }
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct LookupCommand {
+    /// List of files to check to which team they belong to.
+    #[clap(help = "List of files or directories to check [default: .]")]
+    pub files: Vec<PathBuf>,
+
+    /// Specify the path of the file of the codeowners.
+    #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
+    pub codeowners: PathBuf,
 }

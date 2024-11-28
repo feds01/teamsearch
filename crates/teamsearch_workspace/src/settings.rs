@@ -178,4 +178,15 @@ mod tests {
         assert!(set.is_match("examples/notes/index.js"));
         assert!(set.is_match("examples/notes/sub/index.js"));
     }
+
+    #[test]
+    fn test_file_pattern_set_globs() {
+        let patterns = vec![FilePattern::User("app/**/domain/team-code/**".into())];
+        let set = FilePatternSet::try_from_iter(patterns).unwrap();
+
+        assert_eq!(set.len(), 1);
+        assert!(set.is_match("app/notes/domain/team-code/index.html"));
+        assert!(set.is_match("app/notes/domain/team-code/"));
+        assert!(!set.is_match("app/notes/sub/index.js"));
+    }
 }
