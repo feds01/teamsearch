@@ -12,7 +12,7 @@ use teamsearch_utils::{fs, timed};
 use teamsearch_workspace::{
     codeowners::CodeOwners,
     resolver::{find_files_in_paths, ResolvedFile},
-    settings::Settings,
+    settings::{FilePattern, Settings},
 };
 use termcolor::StandardStream;
 
@@ -20,6 +20,7 @@ pub fn find(
     files: &[PathBuf],
     mut settings: Settings,
     team: Vec<String>,
+    exclusions: Vec<String>,
     pattern: String,
 ) -> Result<()> {
     let paths: Vec<PathBuf> = files.iter().map(fs::normalize_path).unique().collect();
@@ -45,8 +46,12 @@ pub fn find(
         settings.file_resolver.include = settings.file_resolver.include.extend(patterns)?;
     }
 
+    // Collect all of the paths that should be excluded.
+    let mut all_exclusions = codeowners.get_ignored_patterns().to_vec();
+    all_exclusions.extend(exclusions.iter().map(FilePattern::new_user));
+
     settings.file_resolver.user_exclude =
-        settings.file_resolver.user_exclude.extend(codeowners.get_ignored_patterns().to_vec())?;
+        settings.file_resolver.user_exclude.extend(all_exclusions)?;
 
     // Firstly, we need to discover all of the files in the provided paths.
     let files = timed(
