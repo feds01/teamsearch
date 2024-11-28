@@ -20,3 +20,17 @@ pub fn normalize_path_to<P: AsRef<Path>, R: AsRef<Path>>(path: P, project_root: 
     }
     path.to_path_buf()
 }
+
+/// Compute the common root for a list of files.
+pub fn common_root(paths: &[PathBuf]) -> PathBuf {
+    let mut common_root = paths[0].clone();
+    for path in paths.iter().skip(1) {
+        common_root = common_root
+            .components()
+            .zip(path.components())
+            .take_while(|(a, b)| a == b)
+            .map(|(a, _)| a)
+            .collect();
+    }
+    common_root
+}
