@@ -19,7 +19,7 @@ use termcolor::StandardStream;
 pub fn find(
     files: &[PathBuf],
     mut settings: Settings,
-    team: String,
+    team: Vec<String>,
     pattern: String,
 ) -> Result<()> {
     let paths: Vec<PathBuf> = files.iter().map(fs::normalize_path).unique().collect();
@@ -32,14 +32,19 @@ pub fn find(
     // extract the given patterns that are specified for the particular team.
     let codeowners = CodeOwners::parse_from_file(&settings.codeowners, &paths[0])?;
 
-    if !codeowners.has_team(&team) {
+    let teams = team.iter().filter(|t| codeowners.has_team(t)).unique().collect::<Vec<_>>();
+
+    if teams.is_empty() {
         // @@Todo: warn the user that there is no team.
         return Ok(());
     }
 
     // Augment the settings with the patterns.
-    let patterns = codeowners.get_patterns_for_team(&team).to_vec();
-    settings.file_resolver.include = settings.file_resolver.include.extend(patterns)?;
+    for team in &teams {
+        let patterns = codeowners.get_patterns_for_team(team).to_vec();
+        settings.file_resolver.include = settings.file_resolver.include.extend(patterns)?;
+    }
+
     settings.file_resolver.user_exclude =
         settings.file_resolver.user_exclude.extend(codeowners.get_ignored_patterns().to_vec())?;
 

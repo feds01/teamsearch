@@ -94,7 +94,7 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
     }
 
     let settings = Settings::new(args.respect_gitignore, args.codeowners);
-    commands::find::find(&files, settings, args.team, args.pattern)?;
+    commands::find::find(&files, settings, args.teams, args.pattern)?;
 
     Ok(ExitStatus::Success)
 }
