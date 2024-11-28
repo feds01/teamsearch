@@ -154,30 +154,13 @@ pub struct Settings {
     /// Path to the actual CODEOWNERS file.
     pub codeowners: PathBuf,
 
-    /// The team to use as a filter for the path.
-    pub team: String,
-
-    /// The pattern that is being searched for.
-    pub pattern: String,
-
     /// Settings to do with file exclusions/inclusions.
     pub file_resolver: FileResolverSettings,
 }
 
 impl Settings {
-    pub fn new(
-        respect_gitignore: bool,
-        codeowners: PathBuf,
-        team: String,
-        pattern: String,
-    ) -> Self {
-        Settings {
-            respect_gitignore,
-            codeowners,
-            team,
-            pattern,
-            file_resolver: FileResolverSettings::new(),
-        }
+    pub fn new(respect_gitignore: bool, codeowners: PathBuf) -> Self {
+        Settings { respect_gitignore, codeowners, file_resolver: FileResolverSettings::new() }
     }
 }
 

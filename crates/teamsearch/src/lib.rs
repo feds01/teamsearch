@@ -85,17 +85,16 @@ fn resolve_default_files(files: Vec<PathBuf>, is_stdin: bool) -> Vec<PathBuf> {
 }
 
 fn find(args: FindCommand) -> Result<ExitStatus> {
-    let files = resolve_default_files(args.files, false); // @@Todo: add stdin support.
+    let files = resolve_default_files(args.files, false);
 
     // Ensure that the codeowners file is present.
     if !args.codeowners.exists() {
         return Err(anyhow!("The CODEOWNERS file does not exist."));
     }
 
-    let settings = Settings::new(args.respect_gitignore, args.codeowners, args.team, args.pattern);
-    commands::find::find(&files, settings)?;
+    let settings = Settings::new(args.respect_gitignore, args.codeowners);
+    commands::find::find(&files, settings, args.team, args.pattern)?;
 
-    // @@TODO: display the actual diagnostics that were collected.
     Ok(ExitStatus::Success)
 }
 
