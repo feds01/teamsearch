@@ -14,7 +14,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Ok, Result};
-use cli::FindCommand;
+use cli::{FindCommand, LookupCommand};
 use crash::crash_handler;
 use teamsearch_utils::{logging::ToolLogger, stream::CompilerOutputStream};
 use teamsearch_workspace::settings::Settings;
@@ -66,6 +66,7 @@ pub fn run(cli::Cli { command }: cli::Cli) -> Result<ExitStatus> {
 
     match command {
         cli::Command::Find(args) => find(args),
+        cli::Command::Lookup(args) => lookup(args),
         cli::Command::Version => version(),
     }
 }
@@ -94,6 +95,20 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
 
     let settings = Settings::new(args.respect_gitignore, args.codeowners);
     commands::find::find(&files, settings, args.team, args.pattern)?;
+
+    Ok(ExitStatus::Success)
+}
+
+fn lookup(args: LookupCommand) -> Result<ExitStatus> {
+    let files = resolve_default_files(args.files, false);
+
+    // Ensure that the codeowners file is present.
+    if !args.codeowners.exists() {
+        return Err(anyhow!("The CODEOWNERS file does not exist."));
+    }
+
+    let settings = Settings::new(true, args.codeowners);
+    commands::lookup::lookup(&files, settings)?;
 
     Ok(ExitStatus::Success)
 }
