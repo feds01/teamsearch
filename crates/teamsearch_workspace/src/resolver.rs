@@ -150,6 +150,16 @@ impl<'s, 'config> ignore::ParallelVisitor for FilesVisitor<'s, 'config> {
                     ) {
                         return WalkState::Skip;
                     }
+
+                    // @@Todo: we should combine `exclude` and `user_exclude` into a single
+                    // exclusion set.
+                    if match_candidate_exclusion(
+                        &file_path,
+                        &file_basename,
+                        &settings.file_resolver.user_exclude,
+                    ) {
+                        return WalkState::Skip;
+                    }
                 } else {
                     return WalkState::Skip;
                 }

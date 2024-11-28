@@ -57,6 +57,15 @@ pub struct FindCommand {
     #[clap(value_parser = parse_team_name, long, short, help = "Specify the team to check for [default: *]")]
     pub teams: Vec<String>,
 
+    /// Paths that should be excluded from the search.
+    #[clap(
+        long,
+        short,
+        help = "Paths that should be excluded from the search [default: none]",
+        value_name = "PATH"
+    )]
+    pub exclude: Vec<String>,
+
     /// The pattern to look for within the codebase.
     #[clap(short)]
     pub pattern: String,

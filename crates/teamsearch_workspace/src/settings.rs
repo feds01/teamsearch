@@ -12,6 +12,7 @@ pub enum FilePattern {
 }
 
 impl FilePattern {
+    /// Add a file pattern to the [GlobSetBuilder].
     pub fn add_to(self, builder: &mut GlobSetBuilder) -> Result<()> {
         match self {
             FilePattern::Builtin(pattern) => {
@@ -22,6 +23,11 @@ impl FilePattern {
             }
         }
         Ok(())
+    }
+
+    /// Create a new user specified [FilePattern] from a string.
+    pub fn new_user(pattern: impl Into<String>) -> Self {
+        FilePattern::User(pattern.into())
     }
 }
 
@@ -182,6 +188,17 @@ mod tests {
     #[test]
     fn test_file_pattern_set_globs() {
         let patterns = vec![FilePattern::User("app/**/domain/team-code/**".into())];
+        let set = FilePatternSet::try_from_iter(patterns).unwrap();
+
+        assert_eq!(set.len(), 1);
+        assert!(set.is_match("app/notes/domain/team-code/index.html"));
+        assert!(set.is_match("app/notes/domain/team-code/"));
+        assert!(!set.is_match("app/notes/sub/index.js"));
+    }
+
+    #[test]
+    fn test_two_way_globs() {
+        let patterns = vec![FilePattern::User("**/domain/**".into())];
         let set = FilePatternSet::try_from_iter(patterns).unwrap();
 
         assert_eq!(set.len(), 1);
