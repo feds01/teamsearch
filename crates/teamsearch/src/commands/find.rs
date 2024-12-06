@@ -1,9 +1,9 @@
 //! Implementation of the `find` command.
 
-use std::{fs::File, path::PathBuf};
+use std::{fs::File, path::PathBuf, time::Instant};
 
 use anyhow::Result;
-use grep_printer::{ColorSpecs, Standard, StandardBuilder};
+use grep_printer::{ColorSpecs, Standard, StandardBuilder, Stats};
 use grep_regex::RegexMatcher;
 use grep_searcher::SearcherBuilder;
 use itertools::Itertools;
@@ -58,7 +58,7 @@ pub fn find(
         || find_files_in_paths(files, &settings),
         log::Level::Info,
         |duration, result| {
-            info!("Resolved {} files in {:?}", result.as_ref().map_or(0, |f| f.len()), duration)
+            info!("resolved {} files in {:?}", result.as_ref().map_or(0, |f| f.len()), duration)
         },
     )?;
 
@@ -70,6 +70,7 @@ pub fn find(
     // @@Todo: integrate a cache system here, we should be able to avoid re-linting
     // already existent files and just skip them.
     let matcher = RegexMatcher::new(pattern.as_str())?;
+    let mut stats = Stats::new();
 
     let mut printer = StandardBuilder::new()
         .heading(true)
@@ -81,11 +82,12 @@ pub fn find(
     for entry in files {
         match entry? {
             ResolvedFile::Nested(file) | ResolvedFile::Root(file) => {
-                let _ = find_matches(&matcher, &file, &mut printer);
+                stats += find_matches(&matcher, &file, &mut printer)?;
             }
         }
     }
 
+    info!("found {} matches in {:?}", stats.matches(), stats.elapsed());
     Ok(())
 }
 
@@ -97,12 +99,21 @@ fn find_matches(
     matcher: &RegexMatcher,
     path: &PathBuf,
     printer: &mut Standard<StandardStream>,
-) -> Result<()> {
+) -> Result<Stats> {
+    let start = Instant::now();
     let mut searcher =
         SearcherBuilder::new().multi_line(true).before_context(1).after_context(1).build();
 
     let file = File::open(path)?;
-    searcher.search_file(matcher, &file, printer.sink_with_path(&matcher, path))?;
+    let mut sink = printer.sink_with_path(&matcher, path);
+    searcher.search_file(matcher, &file, &mut sink)?;
 
-    Ok(())
+    if let Some(stats) = sink.stats() {
+        Ok(stats.clone())
+    } else {
+        // We can at least return the elapsed time.
+        let mut stats = Stats::new();
+        stats.add_elapsed(start.elapsed());
+        Ok(stats)
+    }
 }

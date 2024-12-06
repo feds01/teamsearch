@@ -143,6 +143,7 @@ impl<'s, 'config> ignore::ParallelVisitor for FilesVisitor<'s, 'config> {
                 if let Some(file_name) = path.file_name() {
                     let file_path = Candidate::new(path);
                     let file_basename = Candidate::new(file_name);
+
                     if match_candidate_exclusion(
                         &file_path,
                         &file_basename,
