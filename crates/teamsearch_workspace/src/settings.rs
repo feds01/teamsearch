@@ -180,9 +180,9 @@ mod tests {
         let set = FilePatternSet::try_from_iter(patterns).unwrap();
 
         assert_eq!(set.len(), 1);
-        assert!(set.is_match("examples/notes/index.html"));
-        assert!(set.is_match("examples/notes/index.js"));
-        assert!(set.is_match("examples/notes/sub/index.js"));
+        assert!(set.is_match("notes/index.html"));
+        assert!(set.is_match("notes/index.js"));
+        assert!(set.is_match("notes/sub/index.js"));
     }
 
     #[test]
