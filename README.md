@@ -40,7 +40,7 @@ Options:
 
 ```
 
-### Searching with `find`:
+### Searching with team domains `find`:
 
 The `find` command is useful when you want to search for code based on a specific team and a pattern.
 
@@ -62,7 +62,7 @@ $ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "some-c[o]+de-pattern"
 90-            }
 ```
 
-### Looking up with `lookup`:
+### Looking up ownership with `lookup`:
 
 A lookup is useful when you want to know which team or teams owns a specific file or directory.
 
