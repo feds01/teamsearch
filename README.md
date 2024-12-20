@@ -23,7 +23,7 @@ This will install the `teamsearch` binary in your `$HOME/.cargo/bin` directory.
 
 Example:
 
-```bash
+```
 TeamSearch: Search for large code bases with ease using CODEOWNERS
 
 Usage: teamsearch <COMMAND>
@@ -44,7 +44,7 @@ Options:
 
 The `find` command is useful when you want to search for code based on a specific team and a pattern.
 
-```bash
+```py
 $ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "some-c[o]+de-pattern"
 
 ./some/cool/path/my-team-owns/in/submodule/_here.py
