@@ -1,6 +1,6 @@
 //! Implementation of the `find` command.
 
-use std::path::PathBuf;
+use std::{iter::once, path::PathBuf};
 
 use anyhow::Result;
 use derive_more::Constructor;
@@ -30,7 +30,8 @@ pub(crate) fn find(
     pattern: String,
     case_sensitive: bool,
 ) -> Result<FindResult> {
-    let paths: Vec<PathBuf> = files.iter().map(fs::normalize_path).unique().collect();
+    let paths: Vec<PathBuf> =
+        files.iter().chain(once(&settings.codeowners)).map(fs::normalize_path).unique().collect();
 
     if paths.is_empty() {
         return Ok(FindResult::default());
@@ -38,8 +39,8 @@ pub(crate) fn find(
 
     // We've gotta parse in the `CODEOWNERS` file, and then
     // extract the given patterns that are specified for the particular team.
-    let codeowners = CodeOwners::parse_from_file(&settings.codeowners, &paths[0])?;
-
+    let root = fs::common_root(&paths);
+    let codeowners = CodeOwners::parse_from_file(&settings.codeowners, &root)?;
     let teams = team.iter().filter(|t| codeowners.has_team(t)).unique().collect::<Vec<_>>();
 
     // Augment the settings with the patterns.
