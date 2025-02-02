@@ -95,6 +95,10 @@ pub struct FindCommand {
     /// ```
     #[clap(long, help = "Display the results using in JSON format")]
     pub json: bool,
+
+    /// Whether to simply output the counts of the matches per file.
+    #[clap(long, help = "Output the counts of the matches per file")]
+    pub count: bool,
 }
 
 fn parse_team_name(raw_team: &str) -> Result<String, String> {

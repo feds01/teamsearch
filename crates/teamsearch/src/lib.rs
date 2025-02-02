@@ -120,20 +120,24 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
         let renderer = Renderer::styled();
 
         for result in &file_matches {
-            let mut message = Level::Info.title("match found");
+            if args.count {
+                info!("{}: {}", result.path.display(), result.len());
+            } else {
+                let mut message = Level::Info.title("match found");
 
-            // Now, construct the reports so that we can emit them to the user.
-            for m in &result.matches {
-                let level = Level::Info;
-                message = message.snippet(
-                    Snippet::source(result.contents.as_str())
-                        .origin(result.path.as_os_str().to_str().unwrap())
-                        .fold(true)
-                        .annotation(level.span(m.start..m.end).label("")),
-                );
+                // Now, construct the reports so that we can emit them to the user.
+                for m in &result.matches {
+                    let level = Level::Info;
+                    message = message.snippet(
+                        Snippet::source(result.contents.as_str())
+                            .origin(result.path.as_os_str().to_str().unwrap())
+                            .fold(true)
+                            .annotation(level.span(m.start..m.end).label("")),
+                    );
+                }
+
+                println!("{}", renderer.render(message))
             }
-
-            println!("{}", renderer.render(message))
         }
 
         let total_matches = file_matches.iter().map(|m| m.len()).sum::<usize>();
