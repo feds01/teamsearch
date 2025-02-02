@@ -15,17 +15,21 @@ use std::{
 
 use anyhow::{anyhow, Ok, Result};
 use cli::{FindCommand, LookupCommand};
+use commands::find::FindResult;
 use crash::crash_handler;
+use log::info;
 use teamsearch_utils::{logging::ToolLogger, stream::CompilerOutputStream};
 use teamsearch_workspace::settings::Settings;
 
 #[derive(Copy, Clone)]
 pub enum ExitStatus {
-    /// Linting was successful and there were no linting errors.
+    /// Scanning was successful and there were no errors.
     Success,
-    /// Linting was successful but there were linting errors.
+
+    /// Scanning was successful but there were errors.
     Failure,
-    /// Linting failed.
+
+    /// Scanning failed.
     Error,
 }
 
