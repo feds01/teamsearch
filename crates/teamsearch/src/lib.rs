@@ -101,8 +101,14 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
     let start = std::time::Instant::now();
 
     let settings = Settings::new(args.respect_gitignore, args.codeowners);
-    let FindResult { file_matches } =
-        commands::find::find(&files, settings, args.teams, args.exclude, args.pattern)?;
+    let FindResult { file_matches } = commands::find::find(
+        &files,
+        settings,
+        args.teams,
+        args.exclude,
+        args.pattern,
+        args.case_insensitive,
+    )?;
 
     // Now, we need to print out the results based on the configuration of the user.
     if args.json {

@@ -69,6 +69,15 @@ pub struct FindCommand {
     #[clap(short)]
     pub pattern: String,
 
+    /// Treat the pattern as case insensitive.
+    #[clap(
+        short = 'i',
+        long,
+        help = "Treat the pattern as case insensitive",
+        default_value = "false"
+    )]
+    pub case_insensitive: bool,
+
     /// Display the results using a JSON format. We output the contents
     /// of the search in the following format:
     ///

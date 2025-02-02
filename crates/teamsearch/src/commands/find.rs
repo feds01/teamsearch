@@ -7,7 +7,7 @@ use derive_more::Constructor;
 use itertools::Itertools;
 use log::debug;
 use rayon::prelude::*;
-use teamsearch_matcher::{FileMatches, search_file};
+use teamsearch_matcher::{FileMatches, Pattern, search_file};
 use teamsearch_utils::{fs, timed};
 use teamsearch_workspace::{
     codeowners::CodeOwners,
@@ -28,6 +28,7 @@ pub(crate) fn find(
     team: Vec<String>,
     exclusions: Vec<String>,
     pattern: String,
+    case_sensitive: bool,
 ) -> Result<FindResult> {
     let paths: Vec<PathBuf> = files.iter().map(fs::normalize_path).unique().collect();
 
@@ -65,7 +66,9 @@ pub(crate) fn find(
 
     let mut matches: Vec<_> = files
         .into_par_iter()
-        .map(|entry| -> Result<_, _> { search_file(&pattern, entry?.into_path()) })
+        .map(|entry| -> Result<_, _> {
+            search_file(Pattern::new(&pattern, case_sensitive), entry?.into_path())
+        })
         .filter(|result| {
             if let Ok(matches) = result {
                 return !matches.is_empty();

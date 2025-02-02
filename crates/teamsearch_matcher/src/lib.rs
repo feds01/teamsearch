@@ -11,7 +11,7 @@ use std::{fs::File, io::Read, path::PathBuf};
 use anyhow::Result;
 use derive_more::Constructor;
 use grep_matcher::Matcher;
-use grep_regex::RegexMatcher;
+use grep_regex::{RegexMatcher, RegexMatcherBuilder};
 use serde::{self, Serialize, ser::SerializeStruct};
 
 /// A match that was found within a file. This describes the
@@ -89,9 +89,21 @@ impl FileMatches {
     }
 }
 
+/// A pattern that is used to search for matches within a file.
+#[derive(Constructor)]
+pub struct Pattern<'s> {
+    /// The pattern to search for.
+    pub pattern: &'s str,
+
+    /// Whether or not the pattern should be treated as case insensitive.
+    pub case_insensitive: bool,
+}
+
 /// Perform a scan for a `pattern` of a given file, specified with a [PathBuf].
-pub fn search_file(pattern: &str, path: PathBuf) -> Result<FileMatches> {
-    let matcher = RegexMatcher::new(pattern)?;
+pub fn search_file(pattern: Pattern<'_>, path: PathBuf) -> Result<FileMatches> {
+    let Pattern { pattern, case_insensitive } = pattern;
+
+    let matcher = RegexMatcherBuilder::new().case_insensitive(case_insensitive).build(pattern)?;
 
     // Load the file contents.
     let contents = {
