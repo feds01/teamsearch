@@ -45,21 +45,30 @@ Options:
 The `find` command is useful when you want to search for code based on a specific team and a pattern.
 
 ```py
-$ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "some-c[o]+de-pattern"
+$ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "c(o)+de"
 
-./some/cool/path/my-team-owns/in/submodule/_here.py
-119-                "context": "some-value",
-119:                "some-cooode-pattern": "some-value",
-120-            }
---
-./another/cool/path/my-team-owns/in/_here.py
-27-                ctx["context"] = get_some_value()
-27:                ctx["cooode-pattern"] = "some-value"
-28-            }
---
-88-                reset_context(ctx)
-89:                ctx["cooode-pattern"] = get_code_pattern()
-90-            }
+info: match found
+  --> repo/sub/item3.html:2:11
+   |
+ 2 |     const code = {
+   |           ----
+   |
+  ::: repo/sub/item3.html:3:15
+   |
+ 3 |         "some-cooode-pattern": "some-value",
+   |               ------
+   |
+  ::: repo/sub/item3.html:4:18
+   |
+ 4 |         "another-code-pattern": "some-value",
+   |                  ----
+   |
+  ::: repo/sub/item3.html:10:40
+   |
+10 |     <p>Hello world, a fast way to find code owned by teams</p>
+   |                                        ----
+   |
+info: found 4 matches in 7.918375ms
 ```
 
 ### Looking up ownership with `lookup`:
@@ -67,7 +76,7 @@ $ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "some-c[o]+de-pattern"
 A lookup is useful when you want to know which team or teams owns a specific file or directory.
 
 ```bash
-$ teamsearch lookup -c .github/CODEOWNERS "some/cool/path/my-team-owns/in/submodule/_here.py"
+$ teamsearch lookup -c .github/CODEOWNERS "some/path/my/team/owns/in/submodule/_here.py"
 
-some/cool/path/my-team-owns/in/submodule/_here.py: my-team
+info: some/path/my/team/owns/in/submodule/_here.py: my-team
 ```
