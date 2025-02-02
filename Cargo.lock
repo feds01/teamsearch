@@ -676,6 +676,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "teamsearch_matcher"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "derive_more",
+ "grep-matcher",
+ "grep-regex",
+]
+
+[[package]]
 name = "teamsearch_utils"
 version = "0.1.0"
 dependencies = [

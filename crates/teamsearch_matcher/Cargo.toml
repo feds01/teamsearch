@@ -1,0 +1,13 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "teamsearch_matcher"
+version = "0.1.0"
+authors = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+anyhow = { workspace = true }
+derive_more = { workspace = true }
+grep-matcher = { workspace = true }
+grep-regex = { workspace = true }

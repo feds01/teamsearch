@@ -11,6 +11,7 @@ edition = "2024"
 
 
 [workspace.dependencies]
+teamsearch_matcher = { path = "crates/teamsearch_matcher" }
 teamsearch_utils = { path = "crates/teamsearch_utils" }
 teamsearch_workspace = { path = "crates/teamsearch_workspace" }
 

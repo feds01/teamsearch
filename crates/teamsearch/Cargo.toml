@@ -9,6 +9,7 @@ edition = { workspace = true }
 [dependencies]
 teamsearch_utils = { workspace = true }
 teamsearch_workspace = { workspace = true }
+teamsearch_matcher = { workspace = true }
 
 anyhow = { workspace = true }
 argfile = { workspace = true }
