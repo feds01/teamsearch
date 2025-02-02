@@ -97,8 +97,18 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
         return Err(anyhow!("The CODEOWNERS file does not exist."));
     }
 
+    let start = std::time::Instant::now();
+
     let settings = Settings::new(args.respect_gitignore, args.codeowners);
-    commands::find::find(&files, settings, args.teams, args.exclude, args.pattern)?;
+    let FindResult { file_matches } =
+        commands::find::find(&files, settings, args.teams, args.exclude, args.pattern)?;
+
+    // Now, we need to print out the results based on the configuration of the user.
+    if args.json {
+    } else {
+        let total_matches = file_matches.iter().map(|m| m.len()).sum::<usize>();
+        info!("found {} matches in {:?}", total_matches, start.elapsed());
+    }
 
     Ok(ExitStatus::Success)
 }

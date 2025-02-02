@@ -69,6 +69,24 @@ pub struct FindCommand {
     /// The pattern to look for within the codebase.
     #[clap(short)]
     pub pattern: String,
+
+    /// Display the results using a JSON format. We output the contents
+    /// of the search in the following format:
+    ///
+    /// ```json
+    /// [
+    ///     {
+    ///         "path": "some/foo/result.rs",
+    ///         "matches": [
+    ///             "start": 0,
+    ///             "end": 11,
+    ///             "match": "hello world"
+    ///         ]
+    ///     }
+    /// ]
+    /// ```
+    #[clap(long, help = "Display the results using a JSON format")]
+    pub json: bool,
 }
 
 fn parse_team_name(raw_team: &str) -> Result<String, String> {
