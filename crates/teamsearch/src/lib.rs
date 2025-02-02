@@ -105,6 +105,8 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
 
     // Now, we need to print out the results based on the configuration of the user.
     if args.json {
+        // Print out the results in JSON format.
+        println!("{}", serde_json::to_string_pretty(&file_matches)?);
     } else {
         let total_matches = file_matches.iter().map(|m| m.len()).sum::<usize>();
         info!("found {} matches in {:?}", total_matches, start.elapsed());

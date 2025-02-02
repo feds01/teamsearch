@@ -11,3 +11,4 @@ anyhow = { workspace = true }
 derive_more = { workspace = true }
 grep-matcher = { workspace = true }
 grep-regex = { workspace = true }
+serde = { workspace = true }

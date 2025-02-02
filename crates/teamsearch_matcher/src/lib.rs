@@ -12,15 +12,32 @@ use anyhow::Result;
 use derive_more::Constructor;
 use grep_matcher::Matcher;
 use grep_regex::RegexMatcher;
+use serde::{self, ser::SerializeStruct, Serialize};
 
 /// A match that was found within a file. This describes the
 /// `range` of the match.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Constructor, Serialize)]
 pub struct Match {
     /// The start of the match.
     pub start: usize,
 
     /// The end of the match.
     pub end: usize,
+}
+
+/// Internal structure used to report what `teamsearch` found with reference
+/// to the `snippet` that was matched.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Constructor, Serialize)]
+struct MatchSnippet<'s> {
+    /// The start of the match.
+    start: usize,
+
+    /// The end of the match.
+    end: usize,
+
+    /// The text that was matched when scanning.
+    #[serde(rename = "match")]
+    snippet: &'s str,
 }
 
 /// The result of searching a file for matches.
@@ -37,6 +54,18 @@ pub struct FileMatches {
     pub matches: Vec<Match>,
 }
 
+impl Serialize for FileMatches {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut item = serializer.serialize_struct("FileMatches", 2)?;
+        item.serialize_field("path", &self.path)?;
+        item.serialize_field("matches", &self.snippets())?;
+        item.end()
+    }
+}
+
 impl FileMatches {
     /// The number of matches that were found within the file.
     pub fn len(&self) -> usize {
@@ -46,6 +75,17 @@ impl FileMatches {
     /// Whether or not the file has any matches.
     pub fn is_empty(&self) -> bool {
         self.matches.is_empty()
+    }
+
+    fn snippets(&self) -> Vec<MatchSnippet> {
+        self.matches
+            .iter()
+            .map(|m| MatchSnippet {
+                start: m.start,
+                end: m.end,
+                snippet: &self.contents[m.start..m.end],
+            })
+            .collect()
     }
 }
 
