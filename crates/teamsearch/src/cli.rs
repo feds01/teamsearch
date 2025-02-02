@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use clap::{command, Parser};
+use clap::{Parser, command};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -12,7 +12,6 @@ use clap::{command, Parser};
     after_help = "For help with a specific command, see: `teamsearch help <command>`."
 )]
 #[command(version)]
-
 pub struct Cli {
     #[command(subcommand)]
     pub(crate) command: Command,
@@ -90,11 +89,7 @@ pub struct FindCommand {
 }
 
 fn parse_team_name(raw_team: &str) -> Result<String, String> {
-    if raw_team.starts_with('@') {
-        Ok(raw_team.to_string())
-    } else {
-        Ok(format!("@{}", raw_team))
-    }
+    if raw_team.starts_with('@') { Ok(raw_team.to_string()) } else { Ok(format!("@{}", raw_team)) }
 }
 
 #[derive(Clone, Debug, clap::Parser)]

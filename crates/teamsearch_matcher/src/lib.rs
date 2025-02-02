@@ -12,7 +12,7 @@ use anyhow::Result;
 use derive_more::Constructor;
 use grep_matcher::Matcher;
 use grep_regex::RegexMatcher;
-use serde::{self, ser::SerializeStruct, Serialize};
+use serde::{self, Serialize, ser::SerializeStruct};
 
 /// A match that was found within a file. This describes the
 /// `range` of the match.

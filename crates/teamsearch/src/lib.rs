@@ -14,7 +14,7 @@ use std::{
 };
 
 use annotate_snippets::{Level, Renderer, Snippet};
-use anyhow::{anyhow, Ok, Result};
+use anyhow::{Ok, Result, anyhow};
 use cli::{FindCommand, LookupCommand};
 use commands::find::FindResult;
 use crash::crash_handler;

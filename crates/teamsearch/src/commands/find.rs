@@ -7,7 +7,7 @@ use derive_more::Constructor;
 use itertools::Itertools;
 use log::debug;
 use rayon::prelude::*;
-use teamsearch_matcher::{search_file, FileMatches};
+use teamsearch_matcher::{FileMatches, search_file};
 use teamsearch_utils::{fs, timed};
 use teamsearch_workspace::{
     codeowners::CodeOwners,
