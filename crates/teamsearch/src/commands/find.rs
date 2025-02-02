@@ -74,5 +74,8 @@ pub fn find(
         })
         .collect::<Result<Vec<_>, _>>()?;
 
+    // We want to order the results by the "path" of the file, the match
+    // contents will already be ordered by the line number.
+    matches.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(FindResult::new(matches))
 }
