@@ -15,10 +15,12 @@ argfile = { workspace = true }
 clap = { workspace = true, features = ["derive", "env", "wrap_help"] }
 colored = { workspace = true }
 grep-regex = { workspace = true }
+grep-matcher = { workspace = true }
 grep-searcher = { workspace = true }
-grep-printer = { workspace = true }
 itertools = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
 termcolor = { workspace = true }
 wild = { workspace = true}
+annotate-snippets = { workspace = true }
+derive_more = { workspace = true }

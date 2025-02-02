@@ -1,11 +1,11 @@
 //! Implementation of the `find` command.
+use core::str;
+use std::{fs::File, io::Read, path::PathBuf, time::Instant};
 
-use std::{fs::File, path::PathBuf, time::Instant};
-
+use annotate_snippets::{Level, Renderer, Snippet};
 use anyhow::Result;
-use grep_printer::{ColorSpecs, Standard, StandardBuilder, Stats};
+use grep_matcher::{Match, Matcher};
 use grep_regex::RegexMatcher;
-use grep_searcher::SearcherBuilder;
 use itertools::Itertools;
 use log::info;
 use teamsearch_utils::{fs, timed};
@@ -14,7 +14,6 @@ use teamsearch_workspace::{
     resolver::{find_files_in_paths, ResolvedFile},
     settings::{FilePattern, Settings},
 };
-use termcolor::StandardStream;
 
 pub fn find(
     files: &[PathBuf],
@@ -69,25 +68,41 @@ pub fn find(
 
     // @@Todo: integrate a cache system here, we should be able to avoid re-linting
     // already existent files and just skip them.
-    let matcher = RegexMatcher::new(pattern.as_str())?;
-    let mut stats = Stats::new();
+    let renderer = Renderer::styled();
 
-    let mut printer = StandardBuilder::new()
-        .heading(true)
-        .stats(true)
-        .path(true)
-        .color_specs(ColorSpecs::default_with_color())
-        .build(termcolor::StandardStream::stdout(termcolor::ColorChoice::Always));
+    let matcher = RegexMatcher::new(pattern.as_str())?;
+    let start = Instant::now();
+    let mut total_matches = 0;
 
     for entry in files {
         match entry? {
             ResolvedFile::Nested(file) | ResolvedFile::Root(file) => {
-                stats += find_matches(&matcher, &file, &mut printer)?;
+                let contents = {
+                    let mut contents = String::new();
+                    File::open(&file)?.read_to_string(&mut contents)?;
+                    contents
+                };
+
+                let matches = find_matches(&matcher, &contents)?;
+                total_matches += matches.len();
+
+                // Print each match using annotate-snippets
+                for m in matches {
+                    let level = Level::Info;
+                    let message = level.title("match found").snippet(
+                        Snippet::source(contents.as_str())
+                            .origin(file.as_os_str().to_str().unwrap())
+                            .fold(true)
+                            .annotation(level.span(m.start()..m.end()).label("")),
+                    );
+
+                    println!("{}", renderer.render(message));
+                }
             }
         }
     }
 
-    info!("found {} matches in {:?}", stats.matches(), stats.elapsed());
+    info!("found {} matches in {:?}", total_matches, start.elapsed());
     Ok(())
 }
 
@@ -95,25 +110,13 @@ pub fn find(
 ///
 /// We aggregate the matches into a vector of tuples, where the first element
 /// is the line number and the second element is the line itself.
-fn find_matches(
-    matcher: &RegexMatcher,
-    path: &PathBuf,
-    printer: &mut Standard<StandardStream>,
-) -> Result<Stats> {
-    let start = Instant::now();
-    let mut searcher =
-        SearcherBuilder::new().multi_line(true).before_context(1).after_context(1).build();
+fn find_matches(matcher: &RegexMatcher, contents: &str) -> Result<Vec<Match>> {
+    let mut matches = Vec::new();
 
-    let file = File::open(path)?;
-    let mut sink = printer.sink_with_path(&matcher, path);
-    searcher.search_file(matcher, &file, &mut sink)?;
+    let _ = matcher.try_find_iter::<_, std::io::Error>(contents.as_bytes(), |m| {
+        matches.push(m);
+        Ok(true)
+    })?;
 
-    if let Some(stats) = sink.stats() {
-        Ok(stats.clone())
-    } else {
-        // We can at least return the elapsed time.
-        let mut stats = Stats::new();
-        stats.add_elapsed(start.elapsed());
-        Ok(stats)
-    }
+    Ok(matches)
 }
