@@ -12,6 +12,11 @@ pub enum FilePattern {
 }
 
 impl FilePattern {
+    /// Create a "user" file pattern that encompasses all files.
+    pub fn all() -> Self {
+        FilePattern::User("**".into())
+    }
+
     /// Add a file pattern to the [GlobSetBuilder].
     pub fn add_to(self, builder: &mut GlobSetBuilder) -> Result<()> {
         match self {

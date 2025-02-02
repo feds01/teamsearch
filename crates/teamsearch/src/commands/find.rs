@@ -43,7 +43,14 @@ pub(crate) fn find(
     let codeowners = CodeOwners::parse_from_file(&settings.codeowners, &root)?;
     let teams = team.iter().filter(|t| codeowners.has_team(t)).unique().collect::<Vec<_>>();
 
-    // Augment the settings with the patterns.
+    // If we get no teams at all, we assume that we're doing a wide scan
+    // across an entire repo. This is useful for other modes of scanning that
+    // are looking for things across all teams, or for a specific pattern.
+    if teams.is_empty() {
+        settings.file_resolver.include =
+            settings.file_resolver.include.extend(vec![FilePattern::all()])?;
+    }
+
     for team in &teams {
         let patterns = codeowners.get_patterns_for_team(team).to_vec();
         settings.file_resolver.include = settings.file_resolver.include.extend(patterns)?;
@@ -75,7 +82,7 @@ pub(crate) fn find(
                 return !matches.is_empty();
             }
 
-            true
+            false
         })
         .collect::<Result<Vec<_>, _>>()?;
 
