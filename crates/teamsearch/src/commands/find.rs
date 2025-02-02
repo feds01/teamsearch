@@ -15,13 +15,14 @@ use teamsearch_workspace::{
     settings::{FilePattern, Settings},
 };
 
+/// The result of a search.
 #[derive(Default, Constructor)]
-pub struct FindResult {
+pub(crate) struct FindResult {
     /// The items that we're found within the files.
     pub file_matches: Vec<FileMatches>,
 }
 
-pub fn find(
+pub(crate) fn find(
     files: &[PathBuf],
     mut settings: Settings,
     team: Vec<String>,

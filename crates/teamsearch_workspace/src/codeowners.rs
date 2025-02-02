@@ -30,7 +30,7 @@ impl CodeOwners {
     }
 
     /// Lookup a file path to see which team owns it.
-    pub fn lookup(&self, path: &PathBuf) -> Option<&str> {
+    pub fn lookup(&self, path: &PathBuf) -> Option<String> {
         let path = fs::normalize_path(path);
 
         // @@Hack: Check if we're missing a `/` at the end of the path.
@@ -46,7 +46,7 @@ impl CodeOwners {
             let set = self.get_pattern_for_team(owner);
 
             if set.is_match(&path_pat) {
-                return Some(owner);
+                return Some(owner.to_string());
             }
         }
 

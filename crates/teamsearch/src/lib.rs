@@ -16,7 +16,7 @@ use std::{
 use annotate_snippets::{Level, Renderer, Snippet};
 use anyhow::{Ok, Result, anyhow};
 use cli::{FindCommand, LookupCommand};
-use commands::find::FindResult;
+use commands::{find::FindResult, lookup::LookupEntry};
 use crash::crash_handler;
 use log::info;
 use teamsearch_utils::{logging::ToolLogger, stream::CompilerOutputStream};
@@ -146,7 +146,16 @@ fn lookup(args: LookupCommand) -> Result<ExitStatus> {
     }
 
     let settings = Settings::new(true, args.codeowners);
-    commands::lookup::lookup(&files, settings)?;
+    let results = commands::lookup::lookup(&files, settings)?;
+
+    if args.json {
+        // Print out the results in JSON format.
+        println!("{}", serde_json::to_string_pretty(&results)?);
+    } else {
+        for LookupEntry { path, team } in results.entries {
+            info!("{}: {}", path.display(), team.as_ref().map_or("none", |t| t.as_str()))
+        }
+    }
 
     Ok(ExitStatus::Success)
 }

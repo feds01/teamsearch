@@ -84,7 +84,7 @@ pub struct FindCommand {
     ///     }
     /// ]
     /// ```
-    #[clap(long, help = "Display the results using a JSON format")]
+    #[clap(long, help = "Display the results using in JSON format")]
     pub json: bool,
 }
 
@@ -101,4 +101,22 @@ pub struct LookupCommand {
     /// Specify the path of the file of the codeowners.
     #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
     pub codeowners: PathBuf,
+
+    /// Display the results using a JSON format. We output the contents
+    /// of the search in the following format:
+    ///
+    /// ```json
+    /// [
+    ///     {
+    ///         "path": "some/foo/result.rs",
+    ///         "team": "@some-team"
+    ///     },
+    ///     {
+    ///         "path": "some/bar/result.rs",
+    ///         "team": null
+    ///     },
+    /// ]
+    /// ```
+    #[clap(long, help = "Display the results using in JSON format")]
+    pub json: bool,
 }
