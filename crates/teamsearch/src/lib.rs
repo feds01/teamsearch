@@ -13,6 +13,7 @@ use std::{
     process::ExitCode,
 };
 
+use annotate_snippets::{Level, Renderer, Snippet};
 use anyhow::{anyhow, Ok, Result};
 use cli::{FindCommand, LookupCommand};
 use commands::find::FindResult;
@@ -108,6 +109,27 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
         // Print out the results in JSON format.
         println!("{}", serde_json::to_string_pretty(&file_matches)?);
     } else {
+        // Create a new `annotate-snippets` renderer, and then use it to render the
+        // produced results.
+        let renderer = Renderer::styled();
+
+        for result in &file_matches {
+            let mut message = Level::Info.title("match found");
+
+            // Now, construct the reports so that we can emit them to the user.
+            for m in &result.matches {
+                let level = Level::Info;
+                message = message.snippet(
+                    Snippet::source(result.contents.as_str())
+                        .origin(result.path.as_os_str().to_str().unwrap())
+                        .fold(true)
+                        .annotation(level.span(m.start..m.end).label("")),
+                );
+            }
+
+            println!("{}", renderer.render(message))
+        }
+
         let total_matches = file_matches.iter().map(|m| m.len()).sum::<usize>();
         info!("found {} matches in {:?}", total_matches, start.elapsed());
     }
