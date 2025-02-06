@@ -32,6 +32,35 @@ impl CodeOwners {
         FilePatternSet::try_from_iter(self.get_patterns_for_team(team).to_vec()).unwrap()
     }
 
+    /// Check if a file is owned by a team.
+    pub fn is_owned_by(&self, path: &PathBuf, team: &str) -> bool {
+        let path = fs::normalize_path(path);
+        let set = self.get_pattern_for_team(team);
+
+        // @@Hack: Check if we're missing a `/` at the end of the path.
+        let path_pat = if path.is_dir() && !path.to_string_lossy().ends_with('/') {
+            path.to_string_lossy().to_string() + "/"
+        } else {
+            path.to_string_lossy().to_string()
+        };
+
+        set.is_match(&path_pat)
+    }
+
+    /// Check if a file is owned by anyone.
+    pub fn is_owned(&self, path: &PathBuf) -> bool {
+        let path = fs::normalize_path(path);
+
+        // @@Hack: Check if we're missing a `/` at the end of the path.
+        let path_pat = if path.is_dir() && !path.to_string_lossy().ends_with('/') {
+            path.to_string_lossy().to_string() + "/"
+        } else {
+            path.to_string_lossy().to_string()
+        };
+
+        self.owner_set.is_match(&path_pat)
+    }
+
     /// Lookup a file path to see which team owns it.
     pub fn lookup(&self, path: &PathBuf) -> Option<String> {
         let path = fs::normalize_path(path);
