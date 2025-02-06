@@ -15,7 +15,7 @@ use std::{
 
 use annotate_snippets::{Level, Renderer, Snippet};
 use anyhow::{Ok, Result, anyhow};
-use cli::{FindCommand, LookupCommand};
+use cli::{FindCommand, LookupCommand, OrphanCommand};
 use commands::{find::FindResult, lookup::LookupEntry};
 use crash::crash_handler;
 use log::info;
@@ -72,6 +72,7 @@ pub fn run(cli::Cli { command }: cli::Cli) -> Result<ExitStatus> {
     match command {
         cli::Command::Find(args) => find(args),
         cli::Command::Lookup(args) => lookup(args),
+        cli::Command::Orphans(args) => orphans(args),
         cli::Command::Version => version(),
     }
 }
@@ -165,6 +166,32 @@ fn lookup(args: LookupCommand) -> Result<ExitStatus> {
         for LookupEntry { path, team } in results.entries {
             info!("{}: {}", path.display(), team.as_ref().map_or("none", |t| t.as_str()))
         }
+    }
+
+    Ok(ExitStatus::Success)
+}
+
+fn orphans(args: OrphanCommand) -> Result<ExitStatus> {
+    let files = resolve_default_files(args.files, false);
+
+    // Ensure that the codeowners file is present.
+    if !args.codeowners.exists() {
+        return Err(anyhow!("The CODEOWNERS file does not exist."));
+    }
+
+    let start = std::time::Instant::now();
+    let settings = Settings::new(true, args.codeowners);
+    let results = commands::orphans::orphans(&files, settings, args.exclude)?;
+
+    if args.json {
+        // Print out the results in JSON format.
+        println!("{}", serde_json::to_string_pretty(&results)?);
+    } else {
+        for result in &results.orphans {
+            info!("{}", result.path().display())
+        }
+
+        info!("found {} files in {:?}", results.orphans.len(), start.elapsed());
     }
 
     Ok(ExitStatus::Success)

@@ -2,4 +2,5 @@
 
 pub mod find;
 pub mod lookup;
+pub mod orphans;
 pub mod version;

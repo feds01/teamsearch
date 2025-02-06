@@ -25,6 +25,9 @@ pub enum Command {
     /// Lookup the team that owns a specific file or directory.
     Lookup(LookupCommand),
 
+    /// Find orphaned files that don't belong to any team.
+    Orphans(OrphanCommand),
+
     /// Command to print the version of the `teamsearch` binary.
     Version,
 }
@@ -128,6 +131,38 @@ pub struct LookupCommand {
     ///         "path": "some/bar/result.rs",
     ///         "team": null
     ///     },
+    /// ]
+    /// ```
+    #[clap(long, help = "Display the results using in JSON format")]
+    pub json: bool,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct OrphanCommand {
+    /// List of directories that should be checked for orphans.
+    #[clap(help = "List of files or directories to check [default: .]")]
+    pub files: Vec<PathBuf>,
+
+    /// Specify the path of the file of the codeowners.
+    #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
+    pub codeowners: PathBuf,
+
+    /// Paths that should be excluded from the search.
+    #[clap(
+        long,
+        short,
+        help = "Paths that should be excluded from the search [default: none]",
+        value_name = "PATH"
+    )]
+    pub exclude: Vec<String>,
+
+    /// Display the results using a JSON format. We output the contents
+    /// of the search in the following format:
+    ///
+    /// ```json
+    /// [
+    ///     "some/foo/orphan.rs",
+    ///     "some/bar/orphan.rs",
     /// ]
     /// ```
     #[clap(long, help = "Display the results using in JSON format")]
