@@ -273,10 +273,10 @@ impl ResolvedFile {
         }
     }
 
-    pub fn path(&self) -> &Path {
+    pub fn path(&self) -> &PathBuf {
         match self {
-            ResolvedFile::Root(root) => root.as_path(),
-            ResolvedFile::Nested(root) => root.as_path(),
+            ResolvedFile::Root(root) => root,
+            ResolvedFile::Nested(root) => root,
         }
     }
 
@@ -299,5 +299,14 @@ impl PartialOrd for ResolvedFile {
 impl Ord for ResolvedFile {
     fn cmp(&self, other: &Self) -> Ordering {
         self.path().cmp(other.path())
+    }
+}
+
+impl serde::Serialize for ResolvedFile {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.path().serialize(serializer)
     }
 }

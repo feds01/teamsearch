@@ -691,6 +691,7 @@ dependencies = [
  "index_vec",
  "itertools",
  "log",
+ "serde",
  "teamsearch_utils",
 ]
 

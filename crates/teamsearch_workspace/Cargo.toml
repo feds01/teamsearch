@@ -14,3 +14,4 @@ ignore = { workspace = true }
 index_vec = { workspace = true }
 itertools = { workspace = true }
 log = { workspace = true }
+serde = { workspace = true }
