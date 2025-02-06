@@ -14,6 +14,9 @@ pub struct CodeOwners {
     /// The map of owners to the paths they own.
     pub owners: HashMap<String, Vec<FilePattern>>,
 
+    /// A pre-computed matcher for the owner.
+    owner_set: FilePatternSet,
+
     /// Generally ignored paths.
     pub ignored_patterns: Vec<FilePattern>,
 }
@@ -130,6 +133,10 @@ impl CodeOwners {
                 owners.owners.entry(owner).or_default().push(FilePattern::User(abs));
             }
         }
+
+        // Now compute the matcher for the owners.
+        owners.owner_set =
+            FilePatternSet::try_from_iter(owners.owners.values().flatten().cloned()).unwrap();
 
         Ok(owners)
     }
