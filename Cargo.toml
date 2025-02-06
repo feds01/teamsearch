@@ -44,9 +44,10 @@ lto = "fat"
 debug-assertions = false
 overflow-checks = false
 codegen-units = 1
-
-# strip any symbols from the executable, this makes backtraces un-readable
 strip = true
-
-# set debug to true when profiling
 debug = false
+
+[profile.release-with-dbg-info]
+inherits = "release"
+debug = true
+strip = false  # You'll want to disable stripping to keep debug symbols
