@@ -31,6 +31,7 @@ Usage: teamsearch <COMMAND>
 Commands:
   find     Find the code that you're looking for based on the CODEOWNERS file
   lookup   Lookup the team that owns a specific file or directory
+  orphans  Command to find orphaned files in a project
   version  Command to print the version of the `teamsearch` binary
   help     Print this message or the help of the given subcommand(s)
 
@@ -44,9 +45,11 @@ Options:
 
 The `find` command is useful when you want to search for code based on a specific team and a pattern.
 
-```py
-$ teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "c(o)+de"
+```bash
+teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "c(o)+de"
+```
 
+```py
 info: match found
   --> repo/sub/item3.html:2:11
    |
@@ -76,7 +79,27 @@ info: found 4 matches in 7.918375ms
 A lookup is useful when you want to know which team or teams owns a specific file or directory.
 
 ```bash
-$ teamsearch lookup -c .github/CODEOWNERS "some/path/my/team/owns/in/submodule/_here.py"
+teamsearch lookup -c .github/CODEOWNERS "some/path/my/team/owns/in/submodule/_here.py"
+```
 
+```bash
 info: some/path/my/team/owns/in/submodule/_here.py: my-team
+```
+
+### Identifying files that aren't owned with  `orphans`:
+
+This command is useful for finding files within a project that are governed by
+a `CODEOWNERS` file, but are not owned by anyone. This can be useful for
+finding files that are not being maintained, or are not being maintained
+properly.
+
+```bash
+teamsearch orphans -c .github/CODEOWNERS .
+```
+
+```bash
+info: some/path/my/team/owns/in/submodule/_here.py
+info: some/path/my/team/owns/in/othermodule/_here.py
+info: some/path/other/team/owns/in/submodule/_here.py
+info: found 3 files in 7.918375ms
 ```
