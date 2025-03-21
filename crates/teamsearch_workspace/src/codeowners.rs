@@ -59,6 +59,10 @@ impl CodeOwners {
     }
 
     /// Lookup a file path to see which team owns it.
+    /// 
+    /// @@Future: we need to expand this so it supports multiple teams.
+    /// The order should be based on the order of the teams in the CODEOWNERS
+    /// file.
     pub fn lookup(&self, path: &PathBuf) -> Option<String> {
         let path = fs::normalize_path(path);
 
