@@ -49,16 +49,13 @@ impl CodeOwners {
 
     /// Check if a file is owned by anyone.
     pub fn is_owned(&self, path: &PathBuf) -> bool {
-        let path = fs::normalize_path(path);
-
         // @@Hack: Check if we're missing a `/` at the end of the path.
-        let path_pat = if path.is_dir() && !path.to_string_lossy().ends_with('/') {
-            path.to_string_lossy().to_string() + "/"
+        if path.is_dir() && !path.to_string_lossy().ends_with('/') {
+            let pat = path.to_string_lossy().to_string() + "/";
+            self.owner_set.is_match(&pat)
         } else {
-            path.to_string_lossy().to_string()
-        };
-
-        self.owner_set.is_match(&path_pat)
+            self.owner_set.is_match(path)
+        }
     }
 
     /// Lookup a file path to see which team owns it.
