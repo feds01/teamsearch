@@ -72,6 +72,7 @@ impl CodeOwners {
         } else {
             path.to_string_lossy().to_string()
         };
+        let mut owners = vec![];
 
         for owner in self.owners.keys() {
             // @@Todo: we could potentially use a `OnceCell` here to cache the
@@ -79,11 +80,11 @@ impl CodeOwners {
             let set = self.get_pattern_for_team(owner);
 
             if set.is_match(&path_pat) {
-                return Some(owner.to_string());
+                owners.push(owner.clone());
             }
         }
 
-        None
+        owners
     }
 
     /// Get all patterns for a specific team.
