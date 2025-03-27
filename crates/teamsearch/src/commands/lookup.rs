@@ -11,7 +11,7 @@ use teamsearch_workspace::{codeowners::CodeOwners, settings::Settings};
 #[derive(Serialize)]
 pub(crate) struct LookupEntry {
     /// The owner of the file, if any.
-    pub(crate) team: Option<String>,
+    pub(crate) teams: Vec<String>,
 
     /// The path of the entry.
     pub(crate) path: PathBuf,
@@ -43,7 +43,7 @@ pub fn lookup(files: &[PathBuf], settings: Settings) -> Result<LookupResult> {
 
     // For each path (other than last), we need to find the team that owns it.
     for path in paths.iter().take(paths.len() - 1) {
-        entries.push(LookupEntry { path: path.clone(), team: codeowners.lookup(path) });
+        entries.push(LookupEntry { path: path.clone(), teams: codeowners.lookup(path) });
     }
 
     Ok(LookupResult { entries })

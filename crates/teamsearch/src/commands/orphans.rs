@@ -60,11 +60,14 @@ pub fn orphans(
             // For a small number of files, there no need to use a thread pool.
             let pool = thread_pool::construct_thread_pool();
             pool.install(|| {
-                all_files.par_iter().filter(|file| !codeowners.is_owned(file.path())).cloned().collect()
+                all_files
+                    .par_iter()
+                    .filter(|file| !codeowners.is_owned(file.path()))
+                    .cloned()
+                    .collect()
             })
         }
     };
-
 
     Ok(OrphanResult { orphans })
 }

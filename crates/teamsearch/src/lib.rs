@@ -163,8 +163,16 @@ fn lookup(args: LookupCommand) -> Result<ExitStatus> {
         // Print out the results in JSON format.
         println!("{}", serde_json::to_string_pretty(&results)?);
     } else {
-        for LookupEntry { path, team } in results.entries {
-            info!("{}: {}", path.display(), team.as_ref().map_or("none", |t| t.as_str()))
+        for LookupEntry { path, teams } in results.entries {
+            //
+            if teams.is_empty() {
+                info!("{}: none", path.display());
+                continue;
+            }
+
+            for team in teams {
+                info!("{}: {}", path.display(), team)
+            }
         }
     }
 
