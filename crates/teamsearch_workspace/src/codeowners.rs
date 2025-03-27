@@ -195,3 +195,216 @@ impl CodeOwners {
         Ok(owners)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        fs::{self, File},
+        io::Write,
+        path::PathBuf,
+    };
+
+    use tempfile::{TempDir, tempdir};
+
+    use super::*;
+
+    /// Helper function to create a temporary directory with a CODEOWNERS file
+    fn setup_test_dir(codeowners_content: &str) -> (TempDir, PathBuf) {
+        let temp_dir = tempdir().expect("Failed to create temp directory");
+        let codeowners_path = temp_dir.path().join("CODEOWNERS");
+
+        let mut file = File::create(&codeowners_path).expect("Failed to create CODEOWNERS file");
+        file.write_all(codeowners_content.as_bytes()).expect("Failed to write to CODEOWNERS file");
+
+        // Create some directories for testing
+        let src_dir = temp_dir.path().join("src");
+        fs::create_dir(&src_dir).expect("Failed to create src directory");
+
+        let docs_dir = temp_dir.path().join("docs");
+        fs::create_dir(&docs_dir).expect("Failed to create docs directory");
+
+        let tests_dir = temp_dir.path().join("tests");
+        fs::create_dir(&tests_dir).expect("Failed to create tests directory");
+
+        // Create some files for testing
+        File::create(src_dir.join("main.rs")).expect("Failed to create main.rs");
+        File::create(docs_dir.join("README.md")).expect("Failed to create README.md");
+
+        (temp_dir, codeowners_path)
+    }
+
+    #[test]
+    fn test_parse_from_file() {
+        let codeowners_content = r#"
+# This is a comment
+/src/ @dev-team
+/docs/ @docs-team @dev-team
+/tests/ 
+        "#;
+
+        let (temp_dir, codeowners_path) = setup_test_dir(codeowners_content);
+        let root = temp_dir.path().to_path_buf();
+
+        let code_owners = CodeOwners::parse_from_file(&codeowners_path, &root).unwrap();
+
+        // Check if teams exist
+        assert!(code_owners.has_team("@dev-team"));
+        assert!(code_owners.has_team("@docs-team"));
+        assert!(!code_owners.has_team("@non-existent-team"));
+
+        // Check patterns for teams
+        let dev_team_patterns = code_owners.get_patterns_for_team("@dev-team");
+        assert_eq!(dev_team_patterns.len(), 2);
+
+        let docs_team_patterns = code_owners.get_patterns_for_team("@docs-team");
+        assert_eq!(docs_team_patterns.len(), 1);
+
+        // Check ignored patterns
+        let ignored_patterns = code_owners.get_ignored_patterns();
+        assert_eq!(ignored_patterns.len(), 1);
+    }
+
+    #[test]
+    fn test_is_owned_by() {
+        let codeowners_content = r#"
+/src/ @dev-team
+/docs/ @docs-team @dev-team
+/tests/
+        "#;
+
+        let (temp_dir, codeowners_path) = setup_test_dir(codeowners_content);
+        let root = temp_dir.path().to_path_buf();
+
+        let code_owners = CodeOwners::parse_from_file(&codeowners_path, &root).unwrap();
+
+        // Test file ownership
+        assert!(code_owners.is_owned_by(&root.join("src/main.rs"), "@dev-team"));
+        assert!(!code_owners.is_owned_by(&root.join("src/main.rs"), "@docs-team"));
+
+        assert!(code_owners.is_owned_by(&root.join("docs/README.md"), "@docs-team"));
+        assert!(code_owners.is_owned_by(&root.join("docs/README.md"), "@dev-team"));
+
+        // Test directory ownership
+        assert!(code_owners.is_owned_by(&root.join("src/"), "@dev-team"));
+        assert!(!code_owners.is_owned_by(&root.join("src/"), "@docs-team"));
+    }
+
+    #[test]
+    fn test_is_owned() {
+        let codeowners_content = r#"
+/src/ @dev-team
+/docs/ @docs-team
+/tests/
+        "#;
+
+        let (temp_dir, codeowners_path) = setup_test_dir(codeowners_content);
+        let root = temp_dir.path().to_path_buf();
+
+        let code_owners = CodeOwners::parse_from_file(&codeowners_path, &root).unwrap();
+
+        // Test if files are owned by any team
+        assert!(code_owners.is_owned(&root.join("src/main.rs")));
+        assert!(code_owners.is_owned(&root.join("docs/README.md")));
+
+        // Tests directory is ignored, so it should not be owned
+        assert!(!code_owners.is_owned(&root.join("tests")));
+    }
+
+    #[test]
+    fn test_lookup() {
+        let codeowners_content = r#"
+/src/ @dev-team
+/docs/ @docs-team @dev-team
+/tests/
+        "#;
+
+        let (temp_dir, codeowners_path) = setup_test_dir(codeowners_content);
+        let root = temp_dir.path().to_path_buf();
+
+        let code_owners = CodeOwners::parse_from_file(&codeowners_path, &root).unwrap();
+
+        // Test lookup for files
+        let src_owners = code_owners.lookup(&root.join("src/main.rs"));
+        assert_eq!(src_owners.len(), 1);
+        assert!(src_owners.contains(&"@dev-team".to_string()));
+
+        let docs_owners = code_owners.lookup(&root.join("docs/README.md"));
+        assert_eq!(docs_owners.len(), 2);
+        assert!(docs_owners.contains(&"@docs-team".to_string()));
+        assert!(docs_owners.contains(&"@dev-team".to_string()));
+
+        // Test lookup for directories
+        let src_dir_owners = code_owners.lookup(&root.join("src/"));
+        assert_eq!(src_dir_owners.len(), 1);
+        assert!(src_dir_owners.contains(&"@dev-team".to_string()));
+    }
+
+    #[test]
+    fn test_complex_patterns() {
+        let codeowners_content = r#"
+# Root files
+/**/*.md @docs-team
+
+# Source code
+/src/*.rs @dev-team
+/src/api/ @api-team
+/src/ui/ @ui-team
+
+# Documentation with multiple owners
+/docs/ @docs-team @dev-team
+
+# External libraries
+/lib/ @dev-team @sec-team
+
+# Tests with no explicit owner
+/tests/
+        "#;
+
+        let (temp_dir, codeowners_path) = setup_test_dir(codeowners_content);
+        let root = temp_dir.path().to_path_buf();
+
+        // Create additional directories and files for testing
+        let src_api_dir = root.join("src/api");
+        let src_ui_dir = root.join("src/ui");
+        let lib_dir = root.join("lib");
+
+        fs::create_dir_all(&src_api_dir).expect("Failed to create src/api directory");
+        fs::create_dir_all(&src_ui_dir).expect("Failed to create src/ui directory");
+        fs::create_dir_all(&lib_dir).expect("Failed to create lib directory");
+
+        File::create(root.join("README.md")).expect("Failed to create README.md");
+        File::create(src_api_dir.join("api.rs")).expect("Failed to create api.rs");
+        File::create(src_ui_dir.join("ui.rs")).expect("Failed to create ui.rs");
+        File::create(lib_dir.join("external.rs")).expect("Failed to create external.rs");
+
+        let code_owners = CodeOwners::parse_from_file(&codeowners_path, &root).unwrap();
+
+        // Test root markdown files
+        let readme_owners = code_owners.lookup(&root.join("README.md"));
+        assert_eq!(readme_owners.len(), 1);
+        assert!(readme_owners.contains(&"@docs-team".to_string()));
+
+        // Test src files
+        let main_owners = code_owners.lookup(&root.join("src/main.rs"));
+        assert_eq!(main_owners.len(), 1);
+        assert!(main_owners.contains(&"@dev-team".to_string()));
+
+        // Test api files
+        let api_owners = code_owners.lookup(&root.join("src/api/api.rs"));
+        assert_eq!(api_owners.len(), 2);
+        assert!(api_owners.contains(&"@api-team".to_string()));
+        assert!(api_owners.contains(&"@dev-team".to_string()));
+
+        // Test ui files
+        let ui_owners = code_owners.lookup(&root.join("src/ui/ui.rs"));
+        assert_eq!(ui_owners.len(), 2);
+        assert!(ui_owners.contains(&"@ui-team".to_string()));
+        assert!(ui_owners.contains(&"@dev-team".to_string()));
+
+        // Test lib files
+        let lib_owners = code_owners.lookup(&root.join("lib/external.rs"));
+        assert_eq!(lib_owners.len(), 2);
+        assert!(lib_owners.contains(&"@sec-team".to_string()));
+        assert!(lib_owners.contains(&"@dev-team".to_string()));
+    }
+}
