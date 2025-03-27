@@ -1,11 +1,13 @@
 //! Implementation and utilities for dealing with the `CODEOWNERS
 //! file format.
 
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use derive_more::Constructor;
-use teamsearch_utils::fs;
 
 use crate::settings::{FilePattern, FilePatternSet};
 
@@ -16,6 +18,9 @@ pub struct CodeOwners {
 
     /// A pre-computed matcher for the owner.
     owner_set: FilePatternSet,
+
+    /// The root directory of the repository.
+    root: PathBuf,
 
     /// Generally ignored paths.
     pub ignored_patterns: Vec<FilePattern>,
@@ -33,45 +38,32 @@ impl CodeOwners {
     }
 
     /// Check if a file is owned by a team.
-    pub fn is_owned_by(&self, path: &PathBuf, team: &str) -> bool {
-        let path = fs::normalize_path(path);
+    pub fn is_owned_by(&self, path: &Path, team: &str) -> bool {
         let set = self.get_pattern_for_team(team);
 
-        // @@Hack: Check if we're missing a `/` at the end of the path.
-        let path_pat = if path.is_dir() && !path.to_string_lossy().ends_with('/') {
-            path.to_string_lossy().to_string() + "/"
-        } else {
-            path.to_string_lossy().to_string()
-        };
-
+        // Get path relative to root if possible
+        let relative_path = self.get_relative_path(path);
+        let path_pat = self.format_path_for_matching(&relative_path);
         set.is_match(&path_pat)
     }
 
     /// Check if a file is owned by anyone.
-    pub fn is_owned(&self, path: &PathBuf) -> bool {
-        // @@Hack: Check if we're missing a `/` at the end of the path.
-        if path.is_dir() && !path.to_string_lossy().ends_with('/') {
-            let pat = path.to_string_lossy().to_string() + "/";
-            self.owner_set.is_match(&pat)
-        } else {
-            self.owner_set.is_match(path)
-        }
+    pub fn is_owned(&self, path: &Path) -> bool {
+        let relative_path = self.get_relative_path(path);
+        let path_pat = self.format_path_for_matching(&relative_path);
+
+        self.owner_set.is_match(&path_pat)
     }
 
     /// Lookup a file path to see which team owns it.
-    /// 
+    ///
     /// @@Future: we need to expand this so it supports multiple teams.
     /// The order should be based on the order of the teams in the CODEOWNERS
     /// file.
-    pub fn lookup(&self, path: &PathBuf) -> Option<String> {
-        let path = fs::normalize_path(path);
+    pub fn lookup(&self, path: &Path) -> Vec<String> {
+        let path = self.get_relative_path(path);
+        let path_pat = self.format_path_for_matching(&path);
 
-        // @@Hack: Check if we're missing a `/` at the end of the path.
-        let path_pat = if path.is_dir() && !path.to_string_lossy().ends_with('/') {
-            path.to_string_lossy().to_string() + "/"
-        } else {
-            path.to_string_lossy().to_string()
-        };
         let mut owners = vec![];
 
         for owner in self.owners.keys() {
@@ -85,6 +77,37 @@ impl CodeOwners {
         }
 
         owners
+    }
+
+    /// Helper method to get a path relative to the root
+    fn get_relative_path(&self, path: &Path) -> PathBuf {
+        if path.starts_with(&self.root) {
+            path.strip_prefix(&self.root).unwrap_or(path).to_path_buf()
+        } else {
+            path.to_path_buf()
+        }
+    }
+
+    /// Helper method to format path for matching, ensuring directories end with
+    /// "/"
+    /// Helper method to format path for matching
+    /// - Ensures directories end with "/"
+    /// - Ensures paths start with "/"
+    fn format_path_for_matching(&self, path: &Path) -> String {
+        // Convert path to string
+        let mut path_str = path.to_string_lossy().to_string();
+
+        // Ensure directories end with "/"
+        if path.is_dir() && !path_str.ends_with('/') {
+            path_str = format!("{}/", path_str);
+        }
+
+        // Ensure paths start with "/"
+        if !path_str.starts_with('/') {
+            path_str = format!("/{}", path_str);
+        }
+
+        path_str
     }
 
     /// Get all patterns for a specific team.
@@ -122,12 +145,12 @@ impl CodeOwners {
     ///
     /// /docs/ @another-team @some-team
     /// ```
-    pub fn parse_from_file(path: &PathBuf, root: &PathBuf) -> Result<Self, anyhow::Error> {
+    pub fn parse_from_file(path: &PathBuf, root: &Path) -> Result<Self, anyhow::Error> {
         let contents = std::fs::read_to_string(path).or_else(|_| {
             anyhow::bail!("Failed to read the CODEOWNERS file at {:?}", path);
         })?;
 
-        let mut owners = CodeOwners::default();
+        let mut owners = CodeOwners { root: root.to_path_buf(), ..CodeOwners::default() };
 
         for line in contents.lines() {
             let line = line.trim();
@@ -148,7 +171,7 @@ impl CodeOwners {
                     buf.push_str("**");
                 }
 
-                fs::normalize_path_to(buf, root).to_string_lossy().to_string()
+                buf.to_string()
             };
 
             // If no owners are specified, we consider these to be owned by anyone, and
