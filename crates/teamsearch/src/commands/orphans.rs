@@ -45,7 +45,7 @@ pub fn orphans(
         settings.file_resolver.include.extend(vec![FilePattern::all()])?;
 
     let all_files =
-        find_files_in_paths(files, &settings)?.into_iter().collect::<Result<Vec<_>, _>>()?;
+        find_files_in_paths(&root, files, &settings)?.into_iter().collect::<Result<Vec<_>, _>>()?;
 
     // Depending on whether we have a small number of files, we can either
     // use a thread pool or not. Typically, for small numbers of files, we
