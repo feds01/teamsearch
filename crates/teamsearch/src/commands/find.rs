@@ -37,9 +37,10 @@ pub(crate) fn find(
         return Ok(FindResult::default());
     }
 
+    let root = fs::common_root(&paths);
+
     // We've gotta parse in the `CODEOWNERS` file, and then
     // extract the given patterns that are specified for the particular team.
-    let root = fs::common_root(&paths);
     let codeowners = CodeOwners::parse_from_file(&settings.codeowners, &root)?;
     let teams = team.iter().filter(|t| codeowners.has_team(t)).unique().collect::<Vec<_>>();
 
@@ -65,7 +66,7 @@ pub(crate) fn find(
 
     // Firstly, we need to discover all of the files in the provided paths.
     let files = timed(
-        || find_files_in_paths(files, &settings),
+        || find_files_in_paths(&root, files, &settings),
         log::Level::Debug,
         |duration, result| {
             debug!("resolved {} files in {:?}", result.as_ref().map_or(0, |f| f.len()), duration)

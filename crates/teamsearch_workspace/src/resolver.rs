@@ -42,7 +42,11 @@ impl<'a> Resolver<'a> {
     }
 }
 
-pub fn find_files_in_paths(paths: &[PathBuf], settings: &Settings) -> Result<ResolvedFiles> {
+pub fn find_files_in_paths(
+    root: &PathBuf,
+    paths: &[PathBuf],
+    settings: &Settings,
+) -> Result<ResolvedFiles> {
     // Create a resolver, and then use it to aid in the search for files.
     let resolver = Resolver::new(settings);
 
@@ -77,7 +81,7 @@ pub fn find_files_in_paths(paths: &[PathBuf], settings: &Settings) -> Result<Res
     let walker = builder.build_parallel();
 
     let state = WalkFilesState::new(resolver);
-    let mut visitor = FilesVisitorBuilder::new(&state);
+    let mut visitor = FilesVisitorBuilder::new(&state, root);
     walker.visit(&mut visitor);
 
     state.finish()
@@ -108,11 +112,12 @@ impl<'a> WalkFilesState<'a> {
 
 struct FilesVisitorBuilder<'s, 'config> {
     state: &'s WalkFilesState<'config>,
+    base: &'s PathBuf,
 }
 
 impl<'s, 'config> FilesVisitorBuilder<'s, 'config> {
-    fn new(state: &'s WalkFilesState<'config>) -> Self {
-        FilesVisitorBuilder { state }
+    fn new(state: &'s WalkFilesState<'config>, base: &'s PathBuf) -> Self {
+        FilesVisitorBuilder { state, base }
     }
 }
 
@@ -121,7 +126,12 @@ where
     'config: 's,
 {
     fn build(&mut self) -> Box<dyn ignore::ParallelVisitor + 's> {
-        Box::new(FilesVisitor { local_files: vec![], local_error: Ok(()), global: self.state })
+        Box::new(FilesVisitor {
+            local_files: vec![],
+            local_error: Ok(()),
+            global: self.state,
+            base: self.base,
+        })
     }
 }
 
@@ -129,14 +139,15 @@ pub struct FilesVisitor<'s, 'config> {
     local_files: Vec<Result<ResolvedFile, ignore::Error>>,
     local_error: Result<()>,
     global: &'s WalkFilesState<'config>,
+    base: &'s PathBuf,
 }
 
 impl ignore::ParallelVisitor for FilesVisitor<'_, '_> {
-    fn visit(&mut self, result: std::result::Result<DirEntry, Error>) -> WalkState {
+    fn visit(&mut self, result: Result<DirEntry, Error>) -> WalkState {
         // Respect our own exclusion behaviour.
         if let Ok(entry) = &result {
             if entry.depth() > 0 {
-                let path = entry.path();
+                let path = entry.path().strip_prefix(self.base).unwrap();
                 let resolver = self.global.resolver.read().unwrap();
                 let settings = resolver.resolve(path);
 
@@ -177,7 +188,7 @@ impl ignore::ParallelVisitor for FilesVisitor<'_, '_> {
                     Some(ResolvedFile::Root(entry.into_path()))
                 } else {
                     // Otherwise, check if the file is included.
-                    let path = entry.path();
+                    let path = entry.path().strip_prefix(self.base).unwrap();
                     let resolver = self.global.resolver.read().unwrap();
                     let settings = resolver.resolve(path);
 

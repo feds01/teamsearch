@@ -92,7 +92,6 @@ impl CodeOwners {
     /// "/"
     /// Helper method to format path for matching
     /// - Ensures directories end with "/"
-    /// - Ensures paths start with "/"
     fn format_path_for_matching(&self, path: &Path) -> String {
         // Convert path to string
         let mut path_str = path.to_string_lossy().to_string();
@@ -100,11 +99,6 @@ impl CodeOwners {
         // Ensure directories end with "/"
         if path.is_dir() && !path_str.ends_with('/') {
             path_str = format!("{}/", path_str);
-        }
-
-        // Ensure paths start with "/"
-        if !path_str.starts_with('/') {
-            path_str = format!("/{}", path_str);
         }
 
         path_str
@@ -166,6 +160,11 @@ impl CodeOwners {
 
             let convert_to_user = |path: &str| {
                 let mut buf = path.to_owned();
+
+                // if the path starts with a `/`, we need to remove it.
+                if buf.starts_with('/') {
+                    buf = buf[1..].to_string();
+                }
 
                 if buf.ends_with('/') {
                     buf.push_str("**");
