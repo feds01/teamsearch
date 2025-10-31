@@ -38,10 +38,14 @@ impl FilePattern {
 
 impl fmt::Display for FilePattern {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", match self {
-            Self::Builtin(pattern) => pattern,
-            Self::User(pattern) => pattern.as_str(),
-        })
+        write!(
+            f,
+            "{:?}",
+            match self {
+                Self::Builtin(pattern) => pattern,
+                Self::User(pattern) => pattern.as_str(),
+            }
+        )
     }
 }
 
