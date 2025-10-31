@@ -8,18 +8,19 @@ mod crash;
 pub(crate) mod version;
 
 use std::{
+    collections::BTreeMap,
     panic,
     path::{Path, PathBuf},
     process::ExitCode,
 };
 
-use annotate_snippets::{Level, Renderer, Snippet};
 use anyhow::{Ok, Result, anyhow};
 use cli::{FindCommand, LookupCommand, OrphanCommand};
 use commands::{find::FindResult, lookup::LookupEntry};
 use crash::crash_handler;
 use log::info;
-use teamsearch_utils::{logging::ToolLogger, stream::CompilerOutputStream};
+use teamsearch_matcher::Match;
+use teamsearch_utils::{lines::get_line_range, logging::ToolLogger, stream::CompilerOutputStream};
 use teamsearch_workspace::settings::Settings;
 
 #[derive(Copy, Clone)]
@@ -116,28 +117,34 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
         // Print out the results in JSON format.
         println!("{}", serde_json::to_string_pretty(&file_matches)?);
     } else {
-        // Create a new `annotate-snippets` renderer, and then use it to render the
-        // produced results.
-        let renderer = Renderer::styled();
-
-        for result in &file_matches {
+        for (idx, result) in file_matches.iter().enumerate() {
             if args.count {
                 info!("{}: {}", result.path.display(), result.len());
             } else {
-                let mut message = Level::Info.title("match found");
+                // Group matches by line number to avoid printing duplicate lines.
+                // BTreeMap automatically keeps lines sorted by line number.
+                let line_matches: BTreeMap<usize, String> = result
+                    .matches
+                    .iter()
+                    .map(|m| {
+                        let (line_num, line_content) = get_line_info(&result.contents, m.start);
+                        (line_num, line_content)
+                    })
+                    .collect();
+                
+                // Print file path followed by all matching lines.
+                if !line_matches.is_empty() {
+                    println!("{}", result.path.display());
+                    
+                    for (line_num, line_content) in &line_matches {
+                        println!("{}:{}", line_num, line_content);
+                    }
 
-                // Now, construct the reports so that we can emit them to the user.
-                for m in &result.matches {
-                    let level = Level::Info;
-                    message = message.snippet(
-                        Snippet::source(result.contents.as_str())
-                            .origin(result.path.as_os_str().to_str().unwrap())
-                            .fold(true)
-                            .annotation(level.span(m.start..m.end).label("")),
-                    );
+                    // Only print blank line between files, not after the last one.
+                    if idx < file_matches.len() - 1 {
+                        println!();
+                    }
                 }
-
-                println!("{}", renderer.render(message))
             }
         }
 
