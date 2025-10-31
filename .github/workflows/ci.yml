@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
@@ -21,15 +20,14 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly
-          components: rustfmt
-
+          toolchain: stable
+          components: rustfmt, clippy
 
       - name: Dependency caching
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: crates
-      
+
       - name: Run tests
         run: "cargo test --all --verbose"
 

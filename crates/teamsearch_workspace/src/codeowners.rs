@@ -128,7 +128,7 @@ impl CodeOwners {
     /// Example: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#example-of-a-codeowners-file
     ///
     /// ```plaintext
-    /// 
+    ///
     /// # This is a comment.
     ///
     /// # The owners of the root directory.

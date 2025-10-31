@@ -77,7 +77,7 @@ impl FileMatches {
         self.matches.is_empty()
     }
 
-    fn snippets(&self) -> Vec<MatchSnippet> {
+    fn snippets(&self) -> Vec<MatchSnippet<'_>> {
         self.matches
             .iter()
             .map(|m| MatchSnippet {

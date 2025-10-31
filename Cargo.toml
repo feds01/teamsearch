@@ -1,7 +1,5 @@
 [workspace]
-members = [
-  "crates/teamsearch*",
-]
+members = ["crates/teamsearch*"]
 
 resolver = "2"
 
@@ -51,4 +49,4 @@ debug = false
 [profile.release-with-dbg-info]
 inherits = "release"
 debug = true
-strip = false  # You'll want to disable stripping to keep debug symbols
+strip = false        # You'll want to disable stripping to keep debug symbols

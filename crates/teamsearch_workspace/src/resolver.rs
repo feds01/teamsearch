@@ -145,36 +145,36 @@ pub struct FilesVisitor<'s, 'config> {
 impl ignore::ParallelVisitor for FilesVisitor<'_, '_> {
     fn visit(&mut self, result: Result<DirEntry, Error>) -> WalkState {
         // Respect our own exclusion behaviour.
-        if let Ok(entry) = &result {
-            if entry.depth() > 0 {
-                let path = entry.path().strip_prefix(self.base).unwrap();
-                let resolver = self.global.resolver.read().unwrap();
-                let settings = resolver.resolve(path);
+        if let Ok(entry) = &result
+            && entry.depth() > 0
+        {
+            let path = entry.path().strip_prefix(self.base).unwrap();
+            let resolver = self.global.resolver.read().unwrap();
+            let settings = resolver.resolve(path);
 
-                if let Some(file_name) = path.file_name() {
-                    let file_path = Candidate::new(path);
-                    let file_basename = Candidate::new(file_name);
+            if let Some(file_name) = path.file_name() {
+                let file_path = Candidate::new(path);
+                let file_basename = Candidate::new(file_name);
 
-                    if match_candidate_exclusion(
-                        &file_path,
-                        &file_basename,
-                        &settings.file_resolver.exclude,
-                    ) {
-                        return WalkState::Skip;
-                    }
-
-                    // @@Todo: we should combine `exclude` and `user_exclude` into a single
-                    // exclusion set.
-                    if match_candidate_exclusion(
-                        &file_path,
-                        &file_basename,
-                        &settings.file_resolver.user_exclude,
-                    ) {
-                        return WalkState::Skip;
-                    }
-                } else {
+                if match_candidate_exclusion(
+                    &file_path,
+                    &file_basename,
+                    &settings.file_resolver.exclude,
+                ) {
                     return WalkState::Skip;
                 }
+
+                // @@Todo: we should combine `exclude` and `user_exclude` into a single
+                // exclusion set.
+                if match_candidate_exclusion(
+                    &file_path,
+                    &file_basename,
+                    &settings.file_resolver.user_exclude,
+                ) {
+                    return WalkState::Skip;
+                }
+            } else {
+                return WalkState::Skip;
             }
         }
 
