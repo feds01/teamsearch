@@ -20,7 +20,12 @@ use commands::{find::FindResult, lookup::LookupEntry};
 use crash::crash_handler;
 use log::info;
 use teamsearch_matcher::Match;
-use teamsearch_utils::{lines::get_line_range, logging::ToolLogger, stream::CompilerOutputStream};
+use teamsearch_utils::{
+    highlight::{Colour, highlight},
+    lines::get_line_range,
+    logging::ToolLogger,
+    stream::CompilerOutputStream,
+};
 use teamsearch_workspace::settings::Settings;
 
 #[derive(Copy, Clone)]
@@ -92,6 +97,40 @@ fn resolve_default_files(files: Vec<PathBuf>, is_stdin: bool) -> Vec<PathBuf> {
     }
 }
 
+/// Highlight matches in a line of text.
+fn highlight_line_matches(line_content: &str, matches: &[Match]) -> String {
+    if matches.is_empty() {
+        return line_content.to_string();
+    }
+
+    // Sort matches by start position
+    let mut sorted_matches: Vec<_> = matches.iter().collect();
+    sorted_matches.sort_by_key(|m| m.start);
+
+    let mut result = String::new();
+    let mut last_end = 0;
+
+    for m in sorted_matches {
+        // Add text before match
+        if m.start > last_end {
+            result.push_str(&line_content[last_end..m.start]);
+        }
+
+        // Add highlighted match
+        let matched_text = &line_content[m.start..m.end.min(line_content.len())];
+        result.push_str(&highlight(Colour::Red, matched_text));
+
+        last_end = m.end.min(line_content.len());
+    }
+
+    // Add remaining text after last match
+    if last_end < line_content.len() {
+        result.push_str(&line_content[last_end..]);
+    }
+
+    result
+}
+
 fn find(args: FindCommand) -> Result<ExitStatus> {
     let files = resolve_default_files(args.files, false);
 
@@ -121,23 +160,41 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
             if args.count {
                 info!("{}: {}", result.path.display(), result.len());
             } else {
-                // Group matches by line number to avoid printing duplicate lines.
-                // BTreeMap automatically keeps lines sorted by line number.
-                let line_matches: BTreeMap<usize, String> = result
-                    .matches
-                    .iter()
-                    .map(|m| {
-                        let (line_num, line_content) = get_line_info(&result.contents, m.start);
-                        (line_num, line_content)
-                    })
-                    .collect();
-                
+                // Group matches by line number, keeping track of all matches on each line.
+                let mut line_matches: BTreeMap<usize, (String, Vec<Match>)> = BTreeMap::new();
+
+                for m in &result.matches {
+                    let (line_num, line_start, line_end) =
+                        get_line_range(&result.contents, m.start);
+
+                    // Get the line content
+                    let line_content = result.contents[line_start..line_end].trim_end().to_string();
+
+                    // Adjust match positions relative to line start
+                    let adjusted_match = Match {
+                        start: m.start.saturating_sub(line_start),
+                        end: m.end.saturating_sub(line_start),
+                    };
+
+                    line_matches
+                        .entry(line_num)
+                        .and_modify(|(_, matches)| {
+                            matches.push(adjusted_match);
+                        })
+                        .or_insert_with(|| (line_content, vec![adjusted_match]));
+                }
+
                 // Print file path followed by all matching lines.
                 if !line_matches.is_empty() {
-                    println!("{}", result.path.display());
-                    
-                    for (line_num, line_content) in &line_matches {
-                        println!("{}:{}", line_num, line_content);
+                    // File path in magenta/pink
+                    println!("{}", highlight(Colour::Magenta, result.path.display()));
+
+                    for (line_num, (line_content, matches)) in &line_matches {
+                        // Highlight matches in the line
+                        let highlighted_line = highlight_line_matches(line_content, matches);
+
+                        // Line number in bright green, then the highlighted line
+                        println!("{}:{}", highlight(Colour::Green, line_num), highlighted_line);
                     }
 
                     // Only print blank line between files, not after the last one.
