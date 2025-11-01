@@ -49,28 +49,13 @@ The `find` command is useful when you want to search for code based on a specifi
 teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "c(o)+de"
 ```
 
-```py
-info: match found
-  --> repo/sub/item3.html:2:11
-   |
- 2 |     const code = {
-   |           ----
-   |
-  ::: repo/sub/item3.html:3:15
-   |
- 3 |         "some-cooode-pattern": "some-value",
-   |               ------
-   |
-  ::: repo/sub/item3.html:4:18
-   |
- 4 |         "another-code-pattern": "some-value",
-   |                  ----
-   |
-  ::: repo/sub/item3.html:10:40
-   |
-10 |     <p>Hello world, a fast way to find code owned by teams</p>
-   |                                        ----
-   |
+```
+repo/sub/item3.html
+2:    const code = {
+3:        "some-cooode-pattern": "some-value",
+4:        "another-code-pattern": "some-value",
+10:    <p>Hello world, a fast way to find code owned by teams</p>
+
 info: found 4 matches in 7.918375ms
 ```
 
