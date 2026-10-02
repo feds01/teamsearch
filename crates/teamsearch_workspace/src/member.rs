@@ -20,8 +20,14 @@ impl Member {
     }
 }
 
-index_vec::define_index_type! {
-    // Define StrIdx to use only 32 bits internally (you can use usize, u16,
-    // and even u8).
-    pub struct MemberId = u32;
+// `define_index_type!` expands to the deprecated `u32::max_value()`.
+#[allow(deprecated)]
+mod member_id {
+    index_vec::define_index_type! {
+        // Define StrIdx to use only 32 bits internally (you can use usize, u16,
+        // and even u8).
+        pub struct MemberId = u32;
+    }
 }
+
+pub use member_id::MemberId;

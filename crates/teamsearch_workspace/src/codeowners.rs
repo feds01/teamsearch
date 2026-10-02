@@ -7,11 +7,10 @@ use std::{
 };
 
 use anyhow::Result;
-use derive_more::Constructor;
 
 use crate::settings::{FilePattern, FilePatternSet};
 
-#[derive(Debug, Constructor, Default)]
+#[derive(Debug, Default)]
 pub struct CodeOwners {
     /// The map of owners to the paths they own.
     pub owners: HashMap<String, Vec<FilePattern>>,
