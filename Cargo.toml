@@ -6,6 +6,8 @@ resolver = "2"
 [workspace.package]
 authors = ["Alexander Fedotov <alexander.fedotov.uk@gmail.com>"]
 edition = "2024"
+license = "MIT"
+repository = "https://github.com/feds01/teamsearch"
 
 
 [workspace.dependencies]
@@ -49,3 +51,7 @@ debug = false
 inherits = "release"
 debug = true
 strip = false        # You'll want to disable stripping to keep debug symbols
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"

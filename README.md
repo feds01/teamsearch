@@ -9,15 +9,39 @@ This tool ingests a valid `CODEOWNERS` file and searches for team members based 
 
 ## Installation
 
-TODO: still working on distribution.
+Prebuilt binaries for macOS (Apple Silicon, Intel), Linux (x86_64, arm64; statically linked) and Windows ship with every [release](https://github.com/feds01/teamsearch/releases). No Rust toolchain needed.
 
-However, you can install it locally (with Rust & Cargo installed) by running:
+macOS / Linux:
 
 ```bash
-$ cargo install --path crates/teamsearch/
+$ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/feds01/teamsearch/releases/latest/download/teamsearch-installer.sh | sh
 ```
 
-This will install the `teamsearch` binary in your `$HOME/.cargo/bin` directory.
+Windows:
+
+```powershell
+> powershell -ExecutionPolicy Bypass -c "irm https://github.com/feds01/teamsearch/releases/latest/download/teamsearch-installer.ps1 | iex"
+```
+
+The installer puts `teamsearch` in `~/.local/bin` (or `$XDG_BIN_HOME`). To fetch an archive directly instead, e.g. in CI:
+
+```bash
+$ gh release download --repo feds01/teamsearch --pattern 'teamsearch-aarch64-apple-darwin.tar.xz'
+```
+
+From source (with Rust & Cargo installed):
+
+```bash
+$ cargo install --git https://github.com/feds01/teamsearch teamsearch
+```
+
+### Releasing
+
+Releases are built by [dist](https://github.com/axodotdev/cargo-dist) (`.github/workflows/release.yml`, config in `dist-workspace.toml`). Bump `version` in `crates/teamsearch/Cargo.toml`, merge, then push a matching tag:
+
+```bash
+$ git tag v0.1.1 && git push origin v0.1.1
+```
 
 ## Usage
 
