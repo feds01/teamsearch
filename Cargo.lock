@@ -705,6 +705,7 @@ dependencies = [
  "teamsearch_matcher",
  "teamsearch_utils",
  "teamsearch_workspace",
+ "tempfile",
  "wild",
 ]
 
