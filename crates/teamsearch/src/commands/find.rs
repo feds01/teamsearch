@@ -3,7 +3,6 @@
 use std::{iter::once, path::PathBuf};
 
 use anyhow::Result;
-use derive_more::Constructor;
 use itertools::Itertools;
 use log::debug;
 use rayon::prelude::*;
@@ -16,10 +15,16 @@ use teamsearch_workspace::{
 };
 
 /// The result of a search.
-#[derive(Default, Constructor)]
+#[derive(Default)]
 pub(crate) struct FindResult {
     /// The items that we're found within the files.
     pub file_matches: Vec<FileMatches>,
+}
+
+impl FindResult {
+    pub(crate) fn new(file_matches: Vec<FileMatches>) -> Self {
+        Self { file_matches }
+    }
 }
 
 pub(crate) fn find(

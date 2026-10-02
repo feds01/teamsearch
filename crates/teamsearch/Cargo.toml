@@ -14,7 +14,6 @@ anyhow = { workspace = true }
 argfile = { workspace = true }
 clap = { workspace = true, features = ["derive", "env", "wrap_help"] }
 colored = { workspace = true }
-derive_more = { workspace = true }
 itertools = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
@@ -22,3 +21,6 @@ rayon = { workspace = true }
 wild = { workspace = true}
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

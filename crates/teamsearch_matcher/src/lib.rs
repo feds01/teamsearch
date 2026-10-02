@@ -9,14 +9,13 @@
 use std::{fs::File, io::Read, path::PathBuf};
 
 use anyhow::Result;
-use derive_more::Constructor;
 use grep_matcher::Matcher;
 use grep_regex::{RegexMatcher, RegexMatcherBuilder};
 use serde::{self, Serialize, ser::SerializeStruct};
 
 /// A match that was found within a file. This describes the
 /// `range` of the match.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Constructor, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct Match {
     /// The start of the match.
     pub start: usize,
@@ -27,7 +26,7 @@ pub struct Match {
 
 /// Internal structure used to report what `teamsearch` found with reference
 /// to the `snippet` that was matched.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Constructor, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 struct MatchSnippet<'s> {
     /// The start of the match.
     start: usize,
@@ -90,13 +89,18 @@ impl FileMatches {
 }
 
 /// A pattern that is used to search for matches within a file.
-#[derive(Constructor)]
 pub struct Pattern<'s> {
     /// The pattern to search for.
     pub pattern: &'s str,
 
     /// Whether or not the pattern should be treated as case insensitive.
     pub case_insensitive: bool,
+}
+
+impl<'s> Pattern<'s> {
+    pub fn new(pattern: &'s str, case_insensitive: bool) -> Self {
+        Self { pattern, case_insensitive }
+    }
 }
 
 /// Perform a scan for a `pattern` of a given file, specified with a [PathBuf].
