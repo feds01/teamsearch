@@ -1,8 +1,11 @@
 [package]
 name = "teamsearch"
 version = "0.1.0"
+description = "Search code bases with a CODEOWNERS file in mind"
 authors = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 teamsearch_utils = { workspace = true }
