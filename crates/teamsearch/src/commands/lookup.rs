@@ -76,10 +76,10 @@ mod tests {
         let teams: Vec<Vec<&str>> = result
             .entries
             .iter()
-            .map(|entry| entry.teams.iter().map(String::as_str).sorted().collect())
+            .map(|entry| entry.teams.iter().map(String::as_str).collect())
             .collect();
 
         assert_eq!(paths, files.iter().collect::<Vec<_>>());
-        assert_eq!(teams, vec![vec!["@dev-team", "@devs"], vec!["@devs"], vec!["@devs"]]);
+        assert_eq!(teams, vec![vec!["@devs", "@dev-team"], vec!["@devs"], vec!["@devs"]]);
     }
 }

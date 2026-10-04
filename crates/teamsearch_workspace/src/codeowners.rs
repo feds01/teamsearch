@@ -15,6 +15,9 @@ pub struct CodeOwners {
     /// The map of owners to the paths they own.
     pub owners: HashMap<String, Vec<FilePattern>>,
 
+    /// Every team, in the order it first appears in the CODEOWNERS file.
+    teams: Vec<String>,
+
     /// A pre-computed matcher for the owner.
     owner_set: FilePatternSet,
 
@@ -54,18 +57,15 @@ impl CodeOwners {
         self.owner_set.is_match(&path_pat)
     }
 
-    /// Lookup a file path to see which team owns it.
-    ///
-    /// @@Future: we need to expand this so it supports multiple teams.
-    /// The order should be based on the order of the teams in the CODEOWNERS
-    /// file.
+    /// Lookup a file path to see which teams own it, in the order the teams
+    /// first appear in the CODEOWNERS file.
     pub fn lookup(&self, path: &Path) -> Vec<String> {
         let path = self.get_relative_path(path);
         let path_pat = self.format_path_for_matching(&path);
 
         let mut owners = vec![];
 
-        for owner in self.owners.keys() {
+        for owner in &self.teams {
             // @@Todo: we could potentially use a `OnceCell` here to cache the
             // pattern set for each team.
             let set = self.get_pattern_for_team(owner);
@@ -181,6 +181,10 @@ impl CodeOwners {
 
             // Update all of the owners for the given path.
             for owner in owners_annotations {
+                if !owners.owners.contains_key(&owner) {
+                    owners.teams.push(owner.clone());
+                }
+
                 let abs = convert_to_user(path);
                 owners.owners.entry(owner).or_default().push(FilePattern::User(abs));
             }
@@ -335,6 +339,38 @@ mod tests {
         let src_dir_owners = code_owners.lookup(&root.join("src/"));
         assert_eq!(src_dir_owners.len(), 1);
         assert!(src_dir_owners.contains(&"@dev-team".to_string()));
+    }
+
+    #[test]
+    fn test_lookup_orders_teams_by_codeowners_declaration() {
+        let codeowners_content = r#"
+* @org/everyone
+/src/ @org/backend @org/platform
+/docs/ @org/docs @org/backend
+*.rs @org/rust @org/compilers @org/tooling
+        "#;
+
+        let (temp_dir, codeowners_path) = setup_test_dir(codeowners_content);
+        let root = temp_dir.path().to_path_buf();
+
+        let code_owners = CodeOwners::parse_from_file(&codeowners_path, &root).unwrap();
+
+        assert_eq!(
+            code_owners.lookup(&root.join("src/main.rs")),
+            vec![
+                "@org/everyone",
+                "@org/backend",
+                "@org/platform",
+                "@org/rust",
+                "@org/compilers",
+                "@org/tooling",
+            ]
+        );
+
+        assert_eq!(
+            code_owners.lookup(&root.join("docs/README.md")),
+            vec!["@org/everyone", "@org/backend", "@org/docs"]
+        );
     }
 
     #[test]
