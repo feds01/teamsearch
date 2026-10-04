@@ -1,6 +1,6 @@
 [package]
 name = "teamsearch"
-version = "0.1.0"
+version = "0.2.0"
 description = "Search code bases with a CODEOWNERS file in mind"
 authors = { workspace = true }
 edition = { workspace = true }
