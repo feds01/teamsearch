@@ -15,18 +15,18 @@ teamsearch_matcher = { path = "crates/teamsearch_matcher" }
 teamsearch_utils = { path = "crates/teamsearch_utils" }
 teamsearch_workspace = { path = "crates/teamsearch_workspace" }
 
-annotate-snippets = "0.11.5"
+annotate-snippets = "0.12.16"
 anyhow = { version = "1.0.104" }
-argfile = { version = "0.2.1" }
+argfile = { version = "1.0.0" }
 bitflags = { version = "2.13.2" }
 clap = { version = "4.6.7", features = ["derive"] }
-colored = { version = "2.2.0" }
+colored = { version = "3.1.1" }
 globset = "0.4.20"
 grep-matcher = "0.1.9"
 grep-regex = "0.1.14"
 ignore = "0.4.33"
 index_vec = "0.1.4"
-itertools = "0.13.0"
+itertools = "0.15.0"
 log = { version = "0.4", features = ["kv_unstable", "kv_serde"] }
 once_cell = "1.21.4"
 parking_lot = "0.12"
