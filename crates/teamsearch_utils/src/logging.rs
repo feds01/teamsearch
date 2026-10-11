@@ -95,7 +95,9 @@ impl Log for ToolLogger {
             Level::Trace => highlight(Colour::Magenta | Modifier::Bold, "trace"),
         };
 
-        let mut out = if record.level() == Level::Error {
+        // Errors and warnings go to the error stream so they don't end up
+        // mixed into machine-readable output, such as `--json`.
+        let mut out = if matches!(record.level(), Level::Error | Level::Warn) {
             self.error_stream.get().unwrap().clone()
         } else {
             self.output_stream.get().unwrap().clone()
