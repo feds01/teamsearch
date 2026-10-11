@@ -1,0 +1,35 @@
+[package]
+name = "teamsearch_benchmark"
+version = "0.1.0"
+authors = { workspace = true }
+edition = { workspace = true }
+publish = false
+
+[lib]
+bench = false
+doctest = false
+
+[lints.rust]
+# Set by `cargo codspeed` when it builds the benchmarks
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(codspeed)"] }
+
+[[bench]]
+name = "codeowners"
+harness = false
+
+[[bench]]
+name = "resolver"
+harness = false
+
+[[bench]]
+name = "matcher"
+harness = false
+
+[dependencies]
+teamsearch_matcher = { workspace = true }
+teamsearch_workspace = { workspace = true }
+
+tempfile = { workspace = true }
+
+[dev-dependencies]
+divan = { package = "codspeed-divan-compat", version = "5.0.2" }
