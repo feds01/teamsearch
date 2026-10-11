@@ -87,7 +87,7 @@ pub struct FindCommand {
     no_respect_gitignore: bool,
 
     /// Specify the path of the file of the codeowners.
-    #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
+    #[clap(long, short, help = "Specify the path of the CODEOWNERS file")]
     pub codeowners: PathBuf,
 
     /// Specify the team to check for.
@@ -116,22 +116,23 @@ pub struct FindCommand {
     )]
     pub case_insensitive: bool,
 
-    /// Display the results using a JSON format. We output the contents
-    /// of the search in the following format:
+    /// Display the results in JSON format, which looks like this:
     ///
     /// ```json
     /// [
     ///     {
-    ///         "path": "some/foo/result.rs",
+    ///         "path": "/repo/some/foo/result.rs",
     ///         "matches": [
-    ///             "start": 0,
-    ///             "end": 11,
-    ///             "match": "hello world"
+    ///             {
+    ///                 "start": 0,
+    ///                 "end": 11,
+    ///                 "match": "hello world"
+    ///             }
     ///         ]
     ///     }
     /// ]
     /// ```
-    #[clap(long, help = "Display the results using in JSON format")]
+    #[clap(long, verbatim_doc_comment, help = "Display the results in JSON format")]
     pub json: bool,
 
     /// Whether to simply output the counts of the matches per file.
@@ -150,25 +151,24 @@ pub struct LookupCommand {
     pub files: Vec<PathBuf>,
 
     /// Specify the path of the file of the codeowners.
-    #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
+    #[clap(long, short, help = "Specify the path of the CODEOWNERS file")]
     pub codeowners: PathBuf,
 
-    /// Display the results using a JSON format. We output the contents
-    /// of the search in the following format:
+    /// Display the results in JSON format, which looks like this:
     ///
     /// ```json
     /// [
     ///     {
-    ///         "path": "some/foo/result.rs",
-    ///         "team": "@some-team"
+    ///         "teams": ["@some-team"],
+    ///         "path": "/repo/some/foo/result.rs"
     ///     },
     ///     {
-    ///         "path": "some/bar/result.rs",
-    ///         "team": null
-    ///     },
+    ///         "teams": [],
+    ///         "path": "/repo/some/bar/result.rs"
+    ///     }
     /// ]
     /// ```
-    #[clap(long, help = "Display the results using in JSON format")]
+    #[clap(long, verbatim_doc_comment, help = "Display the results in JSON format")]
     pub json: bool,
 }
 
@@ -179,7 +179,7 @@ pub struct OrphanCommand {
     pub files: Vec<PathBuf>,
 
     /// Specify the path of the file of the codeowners.
-    #[clap(long, short, help = "Specify the path of the CODEOWNERS file [default: CODEOWNERS]")]
+    #[clap(long, short, help = "Specify the path of the CODEOWNERS file")]
     pub codeowners: PathBuf,
 
     /// Paths that should be excluded from the search.
@@ -191,16 +191,15 @@ pub struct OrphanCommand {
     )]
     pub exclude: Vec<String>,
 
-    /// Display the results using a JSON format. We output the contents
-    /// of the search in the following format:
+    /// Display the results in JSON format, which looks like this:
     ///
     /// ```json
     /// [
-    ///     "some/foo/orphan.rs",
-    ///     "some/bar/orphan.rs",
+    ///     "/repo/some/foo/orphan.rs",
+    ///     "/repo/some/bar/orphan.rs"
     /// ]
     /// ```
-    #[clap(long, help = "Display the results using in JSON format")]
+    #[clap(long, verbatim_doc_comment, help = "Display the results in JSON format")]
     pub json: bool,
 }
 
