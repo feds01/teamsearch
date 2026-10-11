@@ -75,13 +75,8 @@ pub struct FindCommand {
 
     /// Respect file exclusions via `.gitignore` and other standard ignore
     /// files. Use `--no-respect-gitignore` to disable.
-    #[arg(
-        long,
-        overrides_with("no_respect_gitignore"),
-        help_heading = "File selection",
-        default_value = "true"
-    )]
-    pub respect_gitignore: bool,
+    #[arg(long, overrides_with("no_respect_gitignore"), help_heading = "File selection")]
+    respect_gitignore: bool,
 
     #[clap(long, overrides_with("respect_gitignore"), hide = true)]
     no_respect_gitignore: bool,
@@ -137,6 +132,15 @@ pub struct FindCommand {
     /// Whether to simply output the counts of the matches per file.
     #[clap(long, help = "Output the counts of the matches per file")]
     pub count: bool,
+}
+
+impl FindCommand {
+    /// Whether to skip files excluded by `.gitignore` and other standard
+    /// ignore files. On by default, and the last of `--respect-gitignore` and
+    /// `--no-respect-gitignore` wins.
+    pub fn respect_gitignore(&self) -> bool {
+        !self.no_respect_gitignore
+    }
 }
 
 fn parse_team_name(raw_team: &str) -> Result<String, String> {
@@ -212,11 +216,29 @@ mod tests {
 
     use super::*;
 
-    fn parse_teams(args: Vec<OsString>) -> Vec<String> {
+    fn parse_find<T: Into<OsString> + Clone>(args: impl IntoIterator<Item = T>) -> FindCommand {
         match Cli::try_parse_from(args).expect("failed to parse args").command {
-            Command::Find(find) => find.teams,
+            Command::Find(find) => find,
             other => panic!("expected `find`, got {other:?}"),
         }
+    }
+
+    fn parse_teams(args: Vec<OsString>) -> Vec<String> {
+        parse_find(args).teams
+    }
+
+    #[test]
+    fn test_no_respect_gitignore_turns_off_gitignore() {
+        let respect_gitignore = |flags: &[&str]| {
+            let args = ["teamsearch", "find", "-c", "CODEOWNERS", "-p", "needle"];
+            parse_find(args.iter().chain(flags).copied()).respect_gitignore()
+        };
+
+        assert!(respect_gitignore(&[]));
+        assert!(respect_gitignore(&["--respect-gitignore"]));
+        assert!(!respect_gitignore(&["--no-respect-gitignore"]));
+        assert!(respect_gitignore(&["--no-respect-gitignore", "--respect-gitignore"]));
+        assert!(!respect_gitignore(&["--respect-gitignore", "--no-respect-gitignore"]));
     }
 
     #[test]

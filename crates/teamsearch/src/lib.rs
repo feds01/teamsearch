@@ -130,6 +130,7 @@ fn highlight_line_matches(line_content: &str, matches: &[Match]) -> String {
 }
 
 fn find(args: FindCommand) -> Result<ExitStatus> {
+    let respect_gitignore = args.respect_gitignore();
     let files = resolve_default_files(args.files, false);
 
     // Ensure that the codeowners file is present.
@@ -139,7 +140,7 @@ fn find(args: FindCommand) -> Result<ExitStatus> {
 
     let start = std::time::Instant::now();
 
-    let settings = Settings::new(args.respect_gitignore, args.codeowners);
+    let settings = Settings::new(respect_gitignore, args.codeowners);
     let FindResult { file_matches } = commands::find::find(
         &files,
         settings,
