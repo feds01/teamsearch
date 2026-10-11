@@ -1,124 +1,89 @@
-
 ![TeamSearch Logo](docs/logo.svg)
 
 [![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/feds01/teamsearch?utm_source=badge)
 
-A simple search tool built on top of `rg` to search for code with the help of `CODEOWNERS` file.
-
-This tool ingests a valid `CODEOWNERS` file and searches for team members based on the provided search query.
-
+`teamsearch` searches a codebase using its `CODEOWNERS` file. You can search only the code a team owns, find out who owns a file, or list the files nobody owns. It's built on ripgrep's search libraries, so it stays fast on large repositories.
 
 ## Installation
 
-Prebuilt binaries for macOS (Apple Silicon, Intel), Linux (x86_64, arm64; statically linked) and Windows ship with every [release](https://github.com/feds01/teamsearch/releases). No Rust toolchain needed.
+Prebuilt binaries are available for macOS, Linux and Windows. See [INSTALL.md](INSTALL.md) for the install scripts, direct downloads and building from source.
 
-macOS / Linux:
+## Usage
 
-```bash
-$ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/feds01/teamsearch/releases/latest/download/teamsearch-installer.sh | sh
+| Command   | What it does                                    |
+| --------- | ----------------------------------------------- |
+| `find`    | Search for a pattern in the files a team owns   |
+| `lookup`  | Show which teams own a file or directory        |
+| `orphans` | List the files that no team owns                |
+| `version` | Print the installed version                     |
+
+`find`, `lookup` and `orphans` need the path to a `CODEOWNERS` file (`-c`), and check the files or directories you pass them, or the current directory if you pass none. Add `--json` for machine-readable output, and run `teamsearch help <command>` for every option.
+
+When `find` and `orphans` walk a directory, they skip hidden files and directories (such as `.github/`), files covered by `.gitignore` inside a git repository, and common build and dependency directories such as `node_modules`, `dist` and `venv`.
+
+The examples below use this `.github/CODEOWNERS`:
+
+```
+/web/  @acme/frontend
+/api/  @acme/backend
 ```
 
-Windows:
+### `find`
 
-```powershell
-> powershell -ExecutionPolicy Bypass -c "irm https://github.com/feds01/teamsearch/releases/latest/download/teamsearch-installer.ps1 | iex"
+Search the code a team owns for a regular expression:
+
+```console
+$ teamsearch find -c .github/CODEOWNERS -t acme/frontend -p 'c(o)+de'
+/repo/web/app.js
+1:const code = 1;
+2:// some cooode here
+info: found 2 matches in 5.232167ms
 ```
 
-The installer puts `teamsearch` in `~/.local/bin` (or `$XDG_BIN_HOME`). To fetch an archive directly instead, e.g. in CI:
+- The leading `@` on a team name is optional. Repeat `-t` to search several teams, or leave it out to search every file.
+- `-i` makes the pattern case-insensitive, and `--count` prints the number of matches per file.
+- `-e <glob>` leaves out the paths that match a glob, such as `-e 'api/**'` or `-e '*.test.js'`.
 
-```bash
-$ gh release download --repo feds01/teamsearch --pattern 'teamsearch-aarch64-apple-darwin.tar.xz'
+### `lookup`
+
+Show which teams own each file:
+
+```console
+$ teamsearch lookup -c .github/CODEOWNERS web/app.js misc/notes.txt
+info: /repo/web/app.js: @acme/frontend
+info: /repo/misc/notes.txt: none
 ```
 
-From source (with Rust & Cargo installed):
+### `orphans`
 
-```bash
-$ cargo install --git https://github.com/feds01/teamsearch teamsearch
+List the files that no `CODEOWNERS` rule covers, which is a quick way to spot code nobody maintains. Skipped files, such as anything under `.github/`, are never listed. Use `-e <glob>` to leave out more paths.
+
+```console
+$ teamsearch orphans -c .github/CODEOWNERS
+info: /repo/scripts/deploy.sh
+info: /repo/misc/notes.txt
+info: found 2 files in 6.795167ms
+```
+
+## Development
+
+### Benchmarks
+
+The benchmarks in `crates/teamsearch_benchmark` parse a `CODEOWNERS` file, look up owners, resolve a team's files and search them, in generated repositories. [CodSpeed](https://app.codspeed.io/feds01/teamsearch) runs them on every commit to `main` and reports how each PR that touches the library crates changes them. To run them locally:
+
+```sh
+cargo bench -p teamsearch_benchmark            # every benchmark
+cargo bench -p teamsearch_benchmark -- lookup  # those that match a filter
 ```
 
 ### Releasing
 
-Releases are built by [dist](https://github.com/axodotdev/cargo-dist) (`.github/workflows/release.yml`, config in `dist-workspace.toml`). Bump `version` in `crates/teamsearch/Cargo.toml`, merge, then push a matching tag:
+Releases are built by [dist](https://github.com/axodotdev/cargo-dist) (`.github/workflows/release.yml`, configured in `dist-workspace.toml`). Bump `version` in `crates/teamsearch/Cargo.toml`, merge, then push a matching tag:
 
-```bash
-$ git tag v0.1.1 && git push origin v0.1.1
+```sh
+git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
-### Benchmarks
+## License
 
-The benchmarks in `crates/teamsearch_benchmark` parse a CODEOWNERS file, look up owners, resolve a team's files and search them, in generated repositories. [CodSpeed](https://app.codspeed.io/feds01/teamsearch) runs them on every commit to `main` and reports how each PR changes them. To run them locally:
-
-```bash
-$ cargo bench -p teamsearch_benchmark            # every benchmark
-$ cargo bench -p teamsearch_benchmark -- lookup  # those that match a filter
-```
-
-## Usage
-
-Example:
-
-```
-TeamSearch: Search for large code bases with ease using CODEOWNERS
-
-Usage: teamsearch <COMMAND>
-
-Commands:
-  find     Find the code that you're looking for based on the CODEOWNERS file
-  lookup   Lookup the team that owns a specific file or directory
-  orphans  Command to find orphaned files in a project
-  version  Command to print the version of the `teamsearch` binary
-  help     Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help     Print help
-  -V, --version  Print version
-
-```
-
-### Searching with team domains `find`:
-
-The `find` command is useful when you want to search for code based on a specific team and a pattern.
-
-```bash
-teamsearch find . -c .github/CODEOWNERS -t "my-team" -p "c(o)+de"
-```
-
-```
-repo/sub/item3.html
-2:    const code = {
-3:        "some-cooode-pattern": "some-value",
-4:        "another-code-pattern": "some-value",
-10:    <p>Hello world, a fast way to find code owned by teams</p>
-
-info: found 4 matches in 7.918375ms
-```
-
-### Looking up ownership with `lookup`:
-
-A lookup is useful when you want to know which team or teams owns a specific file or directory.
-
-```bash
-teamsearch lookup -c .github/CODEOWNERS "some/path/my/team/owns/in/submodule/_here.py"
-```
-
-```bash
-info: some/path/my/team/owns/in/submodule/_here.py: my-team
-```
-
-### Identifying files that aren't owned with  `orphans`:
-
-This command is useful for finding files within a project that are governed by
-a `CODEOWNERS` file, but are not owned by anyone. This can be useful for
-finding files that are not being maintained, or are not being maintained
-properly.
-
-```bash
-teamsearch orphans -c .github/CODEOWNERS .
-```
-
-```bash
-info: some/path/my/team/owns/in/submodule/_here.py
-info: some/path/my/team/owns/in/othermodule/_here.py
-info: some/path/other/team/owns/in/submodule/_here.py
-info: found 3 files in 7.918375ms
-```
+MIT. See [LICENSE](LICENSE).
