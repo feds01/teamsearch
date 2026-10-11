@@ -71,8 +71,10 @@ pub fn find_files_in_paths(
         builder.add(path);
     }
 
-    builder.hidden(false);
+    // `standard_filters` also toggles hidden-file filtering, so skip hidden
+    // files afterwards: that shouldn't depend on respecting ignore files.
     builder.standard_filters(resolver.respect_gitignore());
+    builder.hidden(true);
 
     builder.threads(
         std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get).min(12),
@@ -319,5 +321,54 @@ impl serde::Serialize for ResolvedFile {
         S: serde::Serializer,
     {
         self.path().serialize(serializer)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
+    use super::*;
+    use crate::settings::FilePattern;
+
+    /// Resolve every file under `root`, as paths relative to it.
+    fn resolve(root: &Path, respect_gitignore: bool) -> Vec<String> {
+        let mut settings = Settings::new(respect_gitignore, root.join("CODEOWNERS"));
+        settings.file_resolver.include =
+            settings.file_resolver.include.extend(vec![FilePattern::all()]).unwrap();
+
+        let root = root.to_path_buf();
+        find_files_in_paths(&root, std::slice::from_ref(&root), &settings)
+            .unwrap()
+            .into_iter()
+            .map(|file| {
+                file.unwrap().into_path().strip_prefix(&root).unwrap().display().to_string()
+            })
+            .sorted()
+            .collect()
+    }
+
+    #[test]
+    fn test_respect_gitignore_toggles_ignore_files_but_not_hidden_files() {
+        let temp_dir = tempdir().expect("Failed to create temp directory");
+        let root = temp_dir.path().canonicalize().unwrap();
+
+        // `.ignore` files apply outside a git repository, unlike `.gitignore`.
+        for (path, contents) in [
+            ("CODEOWNERS", "* @devs\n"),
+            ("kept.txt", ""),
+            ("ignored.txt", ""),
+            (".ignore", "ignored.txt\n"),
+            (".hidden/secret.txt", ""),
+        ] {
+            let path = root.join(path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, contents).unwrap();
+        }
+
+        assert_eq!(resolve(&root, true), vec!["CODEOWNERS", "kept.txt"]);
+        assert_eq!(resolve(&root, false), vec!["CODEOWNERS", "ignored.txt", "kept.txt"]);
     }
 }
