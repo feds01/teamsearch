@@ -1,6 +1,7 @@
 
 ![TeamSearch Logo](docs/logo.svg)
 
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/feds01/teamsearch?utm_source=badge)
 
 A simple search tool built on top of `rg` to search for code with the help of `CODEOWNERS` file.
 
@@ -41,6 +42,15 @@ Releases are built by [dist](https://github.com/axodotdev/cargo-dist) (`.github/
 
 ```bash
 $ git tag v0.1.1 && git push origin v0.1.1
+```
+
+### Benchmarks
+
+The benchmarks in `crates/teamsearch_benchmark` parse a CODEOWNERS file, look up owners, resolve a team's files and search them, in generated repositories. [CodSpeed](https://app.codspeed.io/feds01/teamsearch) runs them on every commit to `main` and reports how each PR changes them. To run them locally:
+
+```bash
+$ cargo bench -p teamsearch_benchmark            # every benchmark
+$ cargo bench -p teamsearch_benchmark -- lookup  # those that match a filter
 ```
 
 ## Usage
