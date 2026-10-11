@@ -97,10 +97,9 @@ impl Log for ToolLogger {
 
         // Errors and warnings go to the error stream so they don't end up
         // mixed into machine-readable output, such as `--json`.
-        let mut out = if matches!(record.level(), Level::Error | Level::Warn) {
-            self.error_stream.get().unwrap().clone()
-        } else {
-            self.output_stream.get().unwrap().clone()
+        let mut out = match record.level() {
+            Level::Error | Level::Warn => self.error_stream.get().unwrap().clone(),
+            _ => self.output_stream.get().unwrap().clone(),
         };
 
         self.log_default(&mut out, record, level_prefix);
