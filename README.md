@@ -6,7 +6,13 @@
 
 ## Installation
 
-Prebuilt binaries are available for macOS, Linux and Windows. See [INSTALL.md](INSTALL.md) for the install scripts, direct downloads and building from source.
+Prebuilt binaries are available for macOS, Linux and Windows. With [Homebrew](https://brew.sh), on macOS or Linux:
+
+```sh
+brew install feds01/tap/teamsearch
+```
+
+See [INSTALL.md](INSTALL.md) for the install scripts, direct downloads and building from source.
 
 ## Usage
 
@@ -78,11 +84,9 @@ cargo bench -p teamsearch_benchmark -- lookup  # those that match a filter
 
 ### Releasing
 
-Releases are built by [dist](https://github.com/axodotdev/cargo-dist) (`.github/workflows/release.yml`, configured in `dist-workspace.toml`). Bump `version` in `crates/teamsearch/Cargo.toml`, merge, then push a matching tag:
+Bump `version` in `crates/teamsearch/Cargo.toml`, and with it `Cargo.lock`, and run `just changelog <version>`, which writes [CHANGELOG.md](CHANGELOG.md) with [git-cliff](https://git-cliff.org) from the titles of the pull requests merged since the last release (see [cliff.toml](cliff.toml)). Merge that to `main`, then run `just release` to tag it. [dist](https://github.com/axodotdev/cargo-dist) (`.github/workflows/release.yml`, configured in `dist-workspace.toml`) builds the binaries and installers, and publishes the GitHub release, with the release's section of the changelog as its notes, and the Homebrew formula, to [feds01/homebrew-tap](https://github.com/feds01/homebrew-tap).
 
-```sh
-git tag vX.Y.Z && git push origin vX.Y.Z
-```
+A pull request's title is its entry in the changelog, so write it as a conventional commit, as in `feat(find): …`. Features, fixes, performance and documentation are listed; other types are not.
 
 ## License
 
