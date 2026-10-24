@@ -10,6 +10,14 @@ Every [release](https://github.com/feds01/teamsearch/releases) ships prebuilt bi
 | Linux, arm64 (static)  | `teamsearch-aarch64-unknown-linux-musl.tar.xz` |
 | Windows, x86_64        | `teamsearch-x86_64-pc-windows-msvc.zip`        |
 
+## Homebrew
+
+On macOS or Linux:
+
+```sh
+brew install feds01/tap/teamsearch
+```
+
 ## Install script
 
 The install script picks the right archive for your machine and puts `teamsearch` in `$XDG_BIN_HOME` if that is set, else in `$XDG_DATA_HOME/../bin` if that is set, else in `~/.local/bin`. It adds that directory to your `PATH`, so open a new shell afterwards. Set `TEAMSEARCH_NO_MODIFY_PATH=1` to leave your `PATH` alone.
